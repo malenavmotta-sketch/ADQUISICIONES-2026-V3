@@ -288,6 +288,76 @@ table.main tbody tr:hover td { background: var(--surface2); transition: backgrou
 .debug-panel[open] summary::before { content: '▼  '; }
 .debug-val { color: var(--accent); }
 
+
+/* ── Multi-select filters ── */
+.ms-wrap { position: relative; display: inline-block; }
+.ms-btn {
+  display: flex; align-items: center; gap: 6px; padding: 7px 11px;
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  border: 1px solid var(--border2); border-radius: 8px;
+  background: var(--surface); color: var(--t1); cursor: pointer;
+  white-space: nowrap; transition: border-color .15s;
+  user-select: none;
+}
+.ms-btn:hover { border-color: var(--accent); }
+.ms-btn.has-sel { border-color: var(--accent); color: var(--accent); }
+.ms-count {
+  background: var(--accent); color: #fff; border-radius: 20px;
+  font-size: 10px; font-weight: 700; padding: 1px 6px; min-width: 18px;
+  text-align: center;
+}
+.ms-panel {
+  display: none; position: absolute; top: calc(100% + 4px); left: 0;
+  background: var(--surface); border: 1px solid var(--border2); border-radius: var(--r);
+  box-shadow: var(--shadow2); z-index: 200; min-width: 200px; max-width: 300px;
+  max-height: 260px; overflow-y: auto; padding: 6px 0;
+}
+.ms-panel.open { display: block; }
+.ms-item {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  font-size: 13px; cursor: pointer; transition: background .1s;
+}
+.ms-item:hover { background: var(--surface2); }
+.ms-item input[type=checkbox] { accent-color: var(--accent); width: 14px; height: 14px; flex-shrink: 0; cursor: pointer; }
+.ms-item label { cursor: pointer; flex: 1; line-height: 1.3; }
+.ms-sep { height: 1px; background: var(--border); margin: 4px 0; }
+.ms-clear { padding: 5px 12px; font-size: 11px; color: var(--accent); cursor: pointer; font-weight: 500; }
+.ms-clear:hover { text-decoration: underline; }
+.active-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 0; }
+.active-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 8px 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 500;
+  background: var(--accent); color: #fff; cursor: default;
+}
+.chip-x { cursor: pointer; font-size: 13px; line-height: 1; opacity: .8; }
+.chip-x:hover { opacity: 1; }
+
+/* ── Distribución tab ── */
+.dist-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 10px; overflow: hidden;
+  box-shadow: var(--shadow); transition: box-shadow .15s;
+}
+.dist-card:hover { box-shadow: var(--shadow2); }
+.dist-header {
+  padding: .9rem 1.25rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+}
+.dist-header:hover { background: var(--surface2); }
+.dist-name { font-size: 14px; font-weight: 600; flex: 1; }
+.dist-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.dist-hosp-count { font-size: 11px; color: var(--t2); background: var(--surface2); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
+.dist-qty { font-size: 13px; font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); }
+.dist-monto { font-size: 12px; font-family: 'DM Mono', monospace; color: var(--t2); }
+.dist-body { display: none; border-top: 1px solid var(--border); overflow-x: auto; }
+.dist-body.open { display: block; }
+.dist-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 580px; }
+.dist-table th { padding: 7px 10px; font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; background: var(--surface2); text-align: left; border-bottom: 1px solid var(--border); }
+.dist-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.dist-table tr:last-child td { border-bottom: none; }
+.dist-table tr:hover td { background: var(--surface2); }
+.dist-qty-cell { font-weight: 700; font-family: 'DM Mono', monospace; color: var(--accent); text-align: center; }
+
 /* ── Misc ── */
 @media (max-width: 720px) {
   .charts-grid { grid-template-columns: 1fr; }
@@ -324,6 +394,7 @@ table.main tbody tr:hover td { background: var(--surface2); transition: backgrou
       <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
       <button class="tab" onclick="showTab('proyectos')">Por proyecto</button>
       <button class="tab" onclick="showTab('equipos')">Equipos</button>
+      <button class="tab" onclick="showTab('distribucion')">Distribución</button>
     </div>
 
     <!-- ══════════════ DASHBOARD ══════════════ -->
@@ -374,12 +445,17 @@ table.main tbody tr:hover td { background: var(--surface2); transition: backgrou
         <div id="debug-content"></div>
       </details>
 
-      <div class="filters">
-        <input type="text" id="search" placeholder="Buscar equipo, hospital, proyecto…" oninput="renderTabla()">
-        <select id="f-estado" onchange="renderTabla()"><option value="">Todos los estados</option></select>
-        <select id="f-hosp" onchange="renderTabla()"><option value="">Todos los hospitales</option></select>
-        <select id="f-tipo" onchange="renderTabla()"><option value="">Todos los tipos</option></select>
+      <div class="filters" id="filters-row">
+        <input type="text" id="search" placeholder="Buscar equipo, hospital, proyecto…" oninput="renderTabla()" style="max-width:260px">
+        <div class="ms-wrap" id="ms-wrap-estado"><button class="ms-btn" id="ms-btn-estado" onclick="toggleMs('estado',event)">Estado <span class="ms-count" id="ms-cnt-estado" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-estado"></div></div>
+        <div class="ms-wrap" id="ms-wrap-hosp"><button class="ms-btn" id="ms-btn-hosp" onclick="toggleMs('hosp',event)">Hospital <span class="ms-count" id="ms-cnt-hosp" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-hosp"></div></div>
+        <div class="ms-wrap" id="ms-wrap-tipo"><button class="ms-btn" id="ms-btn-tipo" onclick="toggleMs('tipo',event)">Tipo proyecto <span class="ms-count" id="ms-cnt-tipo" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-tipo"></div></div>
+        <div class="ms-wrap" id="ms-wrap-proy"><button class="ms-btn" id="ms-btn-proy" onclick="toggleMs('proy',event)">Proyecto <span class="ms-count" id="ms-cnt-proy" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-proy"></div></div>
+        <div class="ms-wrap" id="ms-wrap-lic"><button class="ms-btn" id="ms-btn-lic" onclick="toggleMs('lic',event)">Licitación <span class="ms-count" id="ms-cnt-lic" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-lic"></div></div>
+        <div class="ms-wrap" id="ms-wrap-anio"><button class="ms-btn" id="ms-btn-anio" onclick="toggleMs('anio',event)">Año entrega <span class="ms-count" id="ms-cnt-anio" style="display:none">0</span></button><div class="ms-panel" id="ms-panel-anio"></div></div>
+        <button onclick="limpiarFiltros()" style="font-family:inherit;font-size:12px;padding:7px 12px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);color:var(--t3);cursor:pointer">✕ Limpiar</button>
       </div>
+      <div class="active-chips" id="active-chips"></div>
 
       <div class="total-bar" id="total-bar"></div>
 
@@ -396,6 +472,19 @@ table.main tbody tr:hover td { background: var(--surface2); transition: backgrou
       </div>
       <div id="empty" class="empty" style="display:none">Sin resultados para los filtros aplicados.</div>
       <div id="tfoot" style="font-size:11px;color:var(--t3);padding:10px 4px;text-align:right;font-family:'DM Mono',monospace"></div>
+    </div>
+
+
+    <!-- ══════════════ DISTRIBUCIÓN ══════════════ -->
+    <div id="tab-distribucion" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Distribución de equipos por hospital</div>
+        <div id="dist-total" style="font-size:13px;color:var(--t2)"></div>
+      </div>
+      <div class="filters" style="margin-bottom:10px">
+        <input type="text" id="dist-search" placeholder="Buscar equipo…" oninput="renderDistribucion()" style="max-width:300px">
+      </div>
+      <div id="dist-container"></div>
     </div>
 
   </div><!-- /app -->
@@ -723,16 +812,17 @@ function mostrarDebugEstados() {
 //  TABS
 // ═══════════════════════════════════════════════════
 function showTab(t) {
-  var all = ['dashboard','proyectos','equipos'];
+  var all = ['dashboard','proyectos','equipos','distribucion'];
   all.forEach(function(id) {
     document.getElementById('tab-'+id).style.display = id === t ? '' : 'none';
   });
   document.querySelectorAll('.tab').forEach(function(el, i) {
     el.classList.toggle('active', all[i] === t);
   });
-  if (t === 'dashboard') renderDash();
-  if (t === 'proyectos') renderProyectos();
-  if (t === 'equipos')   renderTabla();
+  if (t === 'dashboard')    renderDash();
+  if (t === 'proyectos')    renderProyectos();
+  if (t === 'equipos')      renderTabla();
+  if (t === 'distribucion') renderDistribucion();
 }
 
 // ═══════════════════════════════════════════════════
@@ -897,36 +987,134 @@ function toggleProy(idx) {
 }
 
 // ═══════════════════════════════════════════════════
+//  MULTI-SELECT ENGINE
+// ═══════════════════════════════════════════════════
+
+// Almacena selecciones: { estado: Set, hosp: Set, tipo: Set, proy: Set, lic: Set, anio: Set }
+var MS = { estado: new Set(), hosp: new Set(), tipo: new Set(), proy: new Set(), lic: new Set(), anio: new Set() };
+
+var MS_CFG = {
+  estado: { label: 'Estado',       field: function(d){ return d.estado; } },
+  hosp:   { label: 'Hospital',     field: function(d){ return d.hospital; } },
+  tipo:   { label: 'Tipo proyecto',field: function(d){ return d.tipo_proyecto; } },
+  proy:   { label: 'Proyecto',     field: function(d){ return d.nombre_proyecto; } },
+  lic:    { label: 'Licitación',   field: function(d){ return d.licitacion; } },
+  anio:   { label: 'Año entrega',  field: function(d){ return d.anio_entrega; } }
+};
+
+function buildMsPanel(key, values) {
+  var panel = document.getElementById('ms-panel-' + key);
+  panel.innerHTML = '';
+  if (!values.length) { panel.innerHTML = '<div style="padding:10px 12px;font-size:12px;color:var(--t3)">Sin opciones</div>'; return; }
+  var clearEl = document.createElement('div');
+  clearEl.className = 'ms-clear';
+  clearEl.textContent = 'Limpiar selección';
+  clearEl.onclick = function(e) { e.stopPropagation(); MS[key].clear(); refreshMsUI(key); renderTabla(); };
+  panel.appendChild(clearEl);
+  var sep = document.createElement('div'); sep.className = 'ms-sep'; panel.appendChild(sep);
+  values.forEach(function(v) {
+    var item = document.createElement('div'); item.className = 'ms-item';
+    var cb = document.createElement('input'); cb.type = 'checkbox'; cb.id = 'ms-'+key+'-'+v;
+    cb.checked = MS[key].has(v);
+    cb.onchange = function(e) { e.stopPropagation(); if(this.checked) MS[key].add(v); else MS[key].delete(v); refreshMsUI(key); renderTabla(); };
+    var lbl = document.createElement('label'); lbl.htmlFor = cb.id; lbl.textContent = v || '(vacío)';
+    item.appendChild(cb); item.appendChild(lbl);
+    item.onclick = function(e) { if(e.target !== cb) cb.click(); };
+    panel.appendChild(item);
+  });
+}
+
+function refreshMsUI(key) {
+  var n = MS[key].size;
+  var btn = document.getElementById('ms-btn-' + key);
+  var cnt = document.getElementById('ms-cnt-' + key);
+  cnt.style.display = n ? '' : 'none';
+  cnt.textContent = n;
+  btn.classList.toggle('has-sel', n > 0);
+  // sync checkboxes
+  var panel = document.getElementById('ms-panel-' + key);
+  panel.querySelectorAll('input[type=checkbox]').forEach(function(cb) {
+    var v = cb.id.replace('ms-'+key+'-', '');
+    cb.checked = MS[key].has(v);
+  });
+  renderChips();
+}
+
+function renderChips() {
+  var chips = document.getElementById('active-chips');
+  if (!chips) return;
+  var html = '';
+  Object.keys(MS_CFG).forEach(function(key) {
+    MS[key].forEach(function(v) {
+      html += '<span class="active-chip">'
+        + MS_CFG[key].label + ': ' + (v||'(vacío)')
+        + ' <span class="chip-x" onclick="removeChip(''+key+'',''+v.replace(/'/g,"\'")+'')">&times;</span>'
+        + '</span>';
+    });
+  });
+  chips.innerHTML = html;
+}
+
+function removeChip(key, v) {
+  MS[key].delete(v);
+  refreshMsUI(key);
+  renderTabla();
+}
+
+function limpiarFiltros() {
+  Object.keys(MS).forEach(function(k) { MS[k].clear(); refreshMsUI(k); });
+  document.getElementById('search').value = '';
+  renderTabla();
+}
+
+function toggleMs(key, e) {
+  e.stopPropagation();
+  var panel = document.getElementById('ms-panel-' + key);
+  var isOpen = panel.classList.contains('open');
+  // close all
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('open'); });
+  if (!isOpen) panel.classList.add('open');
+}
+
+// Close all panels on outside click
+document.addEventListener('click', function() {
+  document.querySelectorAll('.ms-panel').forEach(function(p){ p.classList.remove('open'); });
+});
+
+// ═══════════════════════════════════════════════════
 //  EQUIPOS
 // ═══════════════════════════════════════════════════
 function renderFiltros() {
-  var hospsSet = {}, tiposSet = {};
+  // Construir opciones de cada multi-select desde los datos
+  var sets = { estado:new Set(), hosp:new Set(), tipo:new Set(), proy:new Set(), lic:new Set(), anio:new Set() };
   agrupados.forEach(function(d) {
-    if (d.hospital)       hospsSet[d.hospital] = 1;
-    if (d.tipo_proyecto)  tiposSet[d.tipo_proyecto] = 1;
+    if (d.estado)         sets.estado.add(d.estado);
+    if (d.hospital)       sets.hosp.add(d.hospital);
+    if (d.tipo_proyecto)  sets.tipo.add(d.tipo_proyecto);
+    if (d.nombre_proyecto)sets.proy.add(d.nombre_proyecto);
+    if (d.licitacion)     sets.lic.add(d.licitacion);
+    if (d.anio_entrega)   sets.anio.add(d.anio_entrega);
   });
-  var selH = document.getElementById('f-hosp');
-  var selT = document.getElementById('f-tipo');
-  var selE = document.getElementById('f-estado');
-  selH.innerHTML = '<option value="">Todos los hospitales</option>'
-    + Object.keys(hospsSet).sort().map(function(h){return '<option>'+h+'</option>';}).join('');
-  selT.innerHTML = '<option value="">Todos los tipos</option>'
-    + Object.keys(tiposSet).sort().map(function(t){return '<option>'+t+'</option>';}).join('');
-  // Estados: generados desde los datos reales (orden de avance)
-  selE.innerHTML = '<option value="">Todos los estados</option>'
-    + ESTADOS.map(function(e){return '<option value="'+e.v+'">'+e.v+'</option>';}).join('');
+  // Estados en orden de avance, el resto alfabético
+  var estadoVals = ESTADOS.map(function(e){return e.v;}).filter(function(v){return sets.estado.has(v);});
+  buildMsPanel('estado', estadoVals);
+  buildMsPanel('hosp',   Array.from(sets.hosp).sort());
+  buildMsPanel('tipo',   Array.from(sets.tipo).sort());
+  buildMsPanel('proy',   Array.from(sets.proy).sort());
+  buildMsPanel('lic',    Array.from(sets.lic).sort());
+  buildMsPanel('anio',   Array.from(sets.anio).sort());
 }
 
 function renderTabla() {
-  var q  = (document.getElementById('search').value||'').toLowerCase();
-  var fE = document.getElementById('f-estado').value||'';
-  var fH = document.getElementById('f-hosp').value||'';
-  var fT = document.getElementById('f-tipo').value||'';
+  var q = (document.getElementById('search').value||'').toLowerCase();
 
   var filtered = agrupados.filter(function(d) {
-    if (fE && d.estado !== fE) return false;
-    if (fH && d.hospital !== fH) return false;
-    if (fT && d.tipo_proyecto !== fT) return false;
+    if (MS.estado.size && !MS.estado.has(d.estado))        return false;
+    if (MS.hosp.size   && !MS.hosp.has(d.hospital))        return false;
+    if (MS.tipo.size   && !MS.tipo.has(d.tipo_proyecto))   return false;
+    if (MS.proy.size   && !MS.proy.has(d.nombre_proyecto)) return false;
+    if (MS.lic.size    && !MS.lic.has(d.licitacion))       return false;
+    if (MS.anio.size   && !MS.anio.has(d.anio_entrega))    return false;
     if (q) {
       var txt = (d.hospital+d.equipo+d.tipo+d.nombre_proyecto+d.expediente+d.licitacion).toLowerCase();
       if (txt.indexOf(q) === -1) return false;
@@ -968,6 +1156,98 @@ function renderTabla() {
 
   document.getElementById('tfoot').textContent =
     'Mostrando ' + filtered.length + ' de ' + agrupados.length + ' equipos únicos';
+}
+
+// ═══════════════════════════════════════════════════
+//  DISTRIBUCIÓN DE EQUIPOS
+// ═══════════════════════════════════════════════════
+function renderDistribucion() {
+  var q = (document.getElementById('dist-search').value||'').toLowerCase();
+
+  // Agrupar por nombre de equipo (normalizado)
+  var grupos = {};
+  agrupados.forEach(function(d) {
+    var key = (d.equipo||'').trim().toUpperCase();
+    if (!key) return;
+    if (!grupos[key]) grupos[key] = { nombre: d.equipo, items: [] };
+    grupos[key].items.push(d);
+  });
+
+  // Filtrar por búsqueda
+  var lista = Object.values(grupos).filter(function(g) {
+    return !q || g.nombre.toLowerCase().indexOf(q) !== -1;
+  });
+
+  // Ordenar por cantidad total descendente
+  lista.sort(function(a,b) {
+    var qa = a.items.reduce(function(s,d){return s+d.q_total;},0);
+    var qb = b.items.reduce(function(s,d){return s+d.q_total;},0);
+    return qb - qa;
+  });
+
+  var totalEquipos = lista.length;
+  var totalUnidades = lista.reduce(function(s,g){return s+g.items.reduce(function(ss,d){return ss+d.q_total;},0);},0);
+  document.getElementById('dist-total').textContent =
+    totalEquipos + ' tipos de equipo · ' + totalUnidades + ' unidades totales';
+
+  if (!lista.length) {
+    document.getElementById('dist-container').innerHTML =
+      '<div class="empty">Sin resultados.</div>';
+    return;
+  }
+
+  var html = lista.map(function(g, idx) {
+    var items = g.items;
+    var qtotal = items.reduce(function(s,d){return s+d.q_total;},0);
+    var mtotal = items.reduce(function(s,d){return s+d.p_total;},0);
+    var hosps  = items.length; // un item por hospital (ya agrupado)
+
+    // Agrupar ítems por hospital y sumar si hay más de uno igual
+    var porHosp = {};
+    items.forEach(function(d) {
+      var hk = d.hospital;
+      if (!porHosp[hk]) porHosp[hk] = { hospital: d.hospital, q: 0, monto: 0, estado: d.estado, proyecto: d.nombre_proyecto, licitacion: d.licitacion };
+      porHosp[hk].q     += d.q_total;
+      porHosp[hk].monto += d.p_total;
+    });
+    var filas = Object.values(porHosp).sort(function(a,b){return b.q-a.q;});
+
+    var rowsHTML = filas.map(function(f) {
+      return '<tr>'
+        +'<td style="font-weight:600">'+f.hospital+'</td>'
+        +'<td class="dist-qty-cell">'+f.q+'</td>'
+        +'<td style="font-family:DM Mono,monospace;font-size:11px">'+fmtUSD(f.monto)+'</td>'
+        +'<td>'+badge(f.estado)+'</td>'
+        +'<td style="color:var(--t2);font-size:11px;max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+(f.proyecto||'')+'">'+( f.proyecto||'—')+'</td>'
+        +'<td style="color:var(--t3);font-size:11px;font-family:DM Mono,monospace">'+(f.licitacion||'—')+'</td>'
+        +'</tr>';
+    }).join('');
+
+    return '<div class="dist-card">'
+      +'<div class="dist-header" onclick="toggleDist('+idx+')">'
+        +'<div class="dist-name">'+g.nombre+'</div>'
+        +'<div class="dist-meta">'
+          +'<span class="dist-hosp-count">'+hosps+' hospital'+(hosps!==1?'es':'')+'</span>'
+          +'<span class="dist-qty">'+qtotal+' ud.</span>'
+          +'<span class="dist-monto">'+fmtUSD(mtotal)+'</span>'
+          +'<span class="proy-arrow" id="dist-arrow-'+idx+'">▶</span>'
+        +'</div>'
+      +'</div>'
+      +'<div class="dist-body" id="dist-body-'+idx+'">'
+        +'<table class="dist-table">'
+          +'<thead><tr><th>Hospital</th><th>Cantidad</th><th>Monto</th><th>Estado</th><th>Proyecto</th><th>Licitación</th></tr></thead>'
+          +'<tbody>'+rowsHTML+'</tbody>'
+        +'</table>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+
+  document.getElementById('dist-container').innerHTML = html;
+}
+
+function toggleDist(idx) {
+  document.getElementById('dist-body-'+idx).classList.toggle('open');
+  document.getElementById('dist-arrow-'+idx).classList.toggle('open');
 }
 
 // ═══════════════════════════════════════════════════
