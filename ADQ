@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adquisiciones 2026</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #F7F6F2;
+  --surface:  #FFFFFF;
+  --surface2: #F0EEE8;
+  --border:   rgba(0,0,0,0.09);
+  --border2:  rgba(0,0,0,0.18);
+  --t1:       #111110;
+  --t2:       #605F5A;
+  --t3:       #999892;
+  --accent:   #3B5BDB;
+  --r:        10px;
+  --shadow:   0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.05);
+  --shadow2:  0 4px 16px rgba(0,0,0,0.08);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:       #121211;
+    --surface:  #1C1C1A;
+    --surface2: #242422;
+    --border:   rgba(255,255,255,0.08);
+    --border2:  rgba(255,255,255,0.16);
+    --t1:       #EDEAE2;
+    --t2:       #9B9890;
+    --t3:       #666460;
+    --accent:   #748FFC;
+    --shadow:   0 1px 3px rgba(0,0,0,0.3);
+    --shadow2:  0 4px 16px rgba(0,0,0,0.4);
+  }
+  .bs0 { background: #2A2A28; color: #CCCAC0; }
+  .bs1 { background: #21205A; color: #C8C4F8; }
+  .bs2 { background: #082C52; color: #90C4F0; }
+  .bs3 { background: #162F04; color: #A8D470; }
+  .bs4 { background: #3A2002; color: #F5B860; }
+  .bs5 { background: #481212; color: #F2AEAE; }
+  .bs6 { background: #2A2A28; color: #CCCAC0; }
+  .bs7 { background: #481212; color: #F2AEAE; }
+  .tag-si  { background: #162F04; color: #A8D470; }
+  .tag-no  { background: #2A2A28; color: #9B9890; }
+  .dias-rojo   { background: #481212; color: #F2AEAE; }
+  .dias-naranja{ background: #3A2002; color: #F5B860; }
+  .dias-verde  { background: #162F04; color: #A8D470; }
+  .dias-gris   { background: #2A2A28; color: #CCCAC0; }
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--t1);
+  min-height: 100vh;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+/* ── Header ── */
+header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 1.5rem;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: var(--shadow);
+}
+.header-left { display: flex; align-items: center; gap: 16px; }
+header h1 { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.header-badge {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  color: var(--t3);
+  background: var(--surface2);
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.sync-btn {
+  display: flex; align-items: center; gap: 7px;
+  padding: 6px 14px; font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border2); border-radius: 8px;
+  background: var(--surface); color: var(--t2);
+  cursor: pointer; transition: all .15s; font-family: inherit;
+}
+.sync-btn:hover { background: var(--surface2); color: var(--t1); }
+.sync-dot {
+  width: 7px; height: 7px; border-radius: 50%; background: #4C9A2A; flex-shrink: 0;
+  transition: background .3s;
+}
+.sync-dot.syncing { background: #EF9F27; animation: pulse 1s infinite; }
+.sync-dot.error   { background: #E24B4A; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .25; } }
+
+/* ── Layout ── */
+.container { max-width: 1340px; margin: 0 auto; padding: 1.5rem; }
+
+/* ── Tabs ── */
+.tabs {
+  display: flex; gap: 2px; margin-bottom: 1.75rem;
+  border-bottom: 1px solid var(--border);
+}
+.tab {
+  padding: 9px 18px; font-size: 13px; font-weight: 500; font-family: inherit;
+  cursor: pointer; border: none; background: none; color: var(--t2);
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+  transition: color .15s; border-radius: 4px 4px 0 0;
+}
+.tab:hover { color: var(--t1); }
+.tab.active { color: var(--t1); border-bottom-color: var(--accent); }
+
+/* ── Metrics ── */
+.metric-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px; margin-bottom: 1.5rem;
+}
+.metric {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1rem 1.125rem;
+  box-shadow: var(--shadow); transition: box-shadow .15s;
+}
+.metric:hover { box-shadow: var(--shadow2); }
+.metric-label { font-size: 11px; font-weight: 500; color: var(--t3); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 6px; }
+.metric-value { font-size: 24px; font-weight: 600; letter-spacing: -0.02em; line-height: 1; }
+.metric-sub { font-size: 11px; color: var(--t3); margin-top: 4px; }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); padding: 1.125rem 1.25rem;
+  box-shadow: var(--shadow);
+}
+.card-full { margin-bottom: 1.25rem; }
+.card-title { font-size: 12px; font-weight: 600; color: var(--t2); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 14px; }
+.charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1.25rem; }
+
+/* ── Progress bars ── */
+.prog-gen-track {
+  height: 20px; background: var(--surface2); border-radius: 10px;
+  overflow: hidden; display: flex; margin-bottom: 10px;
+}
+.prog-seg { height: 100%; transition: width .4s ease; }
+.prog-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; }
+.prog-legend-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--t2); }
+.prog-dot { width: 9px; height: 9px; border-radius: 2px; flex-shrink: 0; }
+.prog-single { margin-bottom: 10px; }
+.prog-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.prog-name  { font-size: 12px; color: var(--t2); font-weight: 500; }
+.prog-pct   { font-size: 11px; color: var(--t3); font-family: 'DM Mono', monospace; }
+.prog-track { height: 8px; background: var(--surface2); border-radius: 4px; overflow: hidden; }
+.prog-fill  { height: 100%; border-radius: 4px; transition: width .5s ease; }
+
+/* ── Bar chart ── */
+.bar-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+.bar-label {
+  font-size: 11px; color: var(--t2); width: 120px; text-align: right;
+  flex-shrink: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.bar-track { flex: 1; height: 12px; background: var(--surface2); border-radius: 6px; overflow: hidden; }
+.bar-fill  { height: 100%; border-radius: 6px; transition: width .4s ease; }
+.bar-count { font-size: 11px; color: var(--t2); width: 24px; text-align: right; flex-shrink: 0; font-family: 'DM Mono', monospace; }
+
+/* ── Próximas aperturas table ── */
+.urg-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.urg-table th { text-align: left; padding: 8px 10px; color: var(--t2); font-weight: 500; border-bottom: 1px solid var(--border); font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+.urg-table td { padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.urg-table tr:last-child td { border-bottom: none; }
+.urg-table tbody tr:hover td { background: var(--surface2); }
+
+/* ── Días chips ── */
+.dias-chip { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 20px; white-space: nowrap; font-family: 'DM Mono', monospace; }
+.dias-rojo    { background: #FCEAEA; color: #A32D2D; }
+.dias-naranja { background: #FEF0DA; color: #7A4002; }
+.dias-verde   { background: #E8F5D8; color: #2D5A0C; }
+.dias-gris    { background: var(--surface2); color: var(--t3); }
+
+/* ── Badges de estado ── */
+.badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.bs0 { background: #EEECEA; color: #52504C; }
+.bs1 { background: #EDEEFE; color: #3530A0; }
+.bs2 { background: #E2EEF9; color: #0C4480; }
+.bs3 { background: #E6F4D4; color: #2B580C; }
+.bs4 { background: #FEF3DA; color: #7A4002; }
+.bs5 { background: #FCEAEA; color: #881E1E; }
+.bs6 { background: #EEECEA; color: #706E6A; }
+.bs7 { background: #FCEAEA; color: #A32D2D; }
+
+/* ── Proyectos accordion ── */
+.proy-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r); margin-bottom: 10px; overflow: hidden;
+  box-shadow: var(--shadow); transition: box-shadow .15s;
+}
+.proy-card:hover { box-shadow: var(--shadow2); }
+.proy-header {
+  padding: .9rem 1.25rem; cursor: pointer;
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+}
+.proy-header:hover { background: var(--surface2); }
+.proy-name { font-size: 14px; font-weight: 600; }
+.proy-hospitals { font-size: 11px; color: var(--t3); margin-top: 2px; }
+.proy-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px; align-items: center; }
+.proy-meta { display: flex; align-items: center; gap: 10px; flex-shrink: 0; margin-top: 2px; }
+.proy-count { font-size: 11px; color: var(--t2); background: var(--surface2); padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); }
+.proy-monto { font-size: 13px; font-weight: 600; font-family: 'DM Mono', monospace; }
+.proy-arrow { font-size: 11px; color: var(--t3); transition: transform .2s; margin-top: 3px; }
+.proy-arrow.open { transform: rotate(90deg); }
+.proy-body { display: none; border-top: 1px solid var(--border); overflow-x: auto; }
+.proy-body.open { display: block; }
+.proy-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 680px; }
+.proy-table th { padding: 7px 10px; font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .04em; background: var(--surface2); text-align: left; border-bottom: 1px solid var(--border); }
+.proy-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.proy-table tr:last-child td { border-bottom: none; }
+.proy-table tr:hover td { background: var(--surface2); }
+
+/* ── Equipos table ── */
+.section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; flex-wrap: wrap; gap: 8px; }
+.section-title { font-size: 15px; font-weight: 600; }
+.filters { display: flex; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
+.filters input, .filters select {
+  font-family: 'DM Sans', sans-serif; font-size: 13px;
+  padding: 7px 11px; border: 1px solid var(--border2); border-radius: 8px;
+  background: var(--surface); color: var(--t1); outline: none;
+  transition: border-color .15s;
+}
+.filters input:focus, .filters select:focus { border-color: var(--accent); }
+.filters input { flex: 1; min-width: 200px; }
+.total-bar {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--r);
+  padding: .7rem 1rem; margin-bottom: 12px; display: flex; align-items: baseline;
+  gap: 10px; flex-wrap: wrap; box-shadow: var(--shadow);
+}
+.total-label { font-size: 12px; color: var(--t3); font-weight: 500; }
+.total-value { font-size: 18px; font-weight: 600; letter-spacing: -0.01em; font-family: 'DM Mono', monospace; }
+.total-sub { font-size: 12px; color: var(--t3); }
+.table-wrap { overflow-x: auto; border-radius: var(--r); box-shadow: var(--shadow); }
+table.main {
+  width: 100%; border-collapse: collapse; font-size: 12px; min-width: 1020px;
+  background: var(--surface);
+}
+table.main th {
+  text-align: left; padding: 9px 11px; color: var(--t2); font-weight: 600; font-size: 10px;
+  text-transform: uppercase; letter-spacing: .04em; border-bottom: 1px solid var(--border);
+  background: var(--surface2); position: sticky; top: 0; z-index: 1; white-space: nowrap;
+}
+table.main td { padding: 8px 11px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+table.main tr:last-child td { border-bottom: none; }
+table.main tbody tr:hover td { background: var(--surface2); transition: background .1s; }
+.tag-cheq { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.tag-si { background: #E6F4D4; color: #2B580C; }
+.tag-no { background: var(--surface2); color: var(--t3); }
+.empty { text-align: center; padding: 3.5rem; color: var(--t3); font-size: 13px; }
+
+/* ── Loading ── */
+.loading-screen {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 5rem 2rem; gap: 12px; text-align: center;
+}
+.loading-spinner {
+  width: 32px; height: 32px; border: 2px solid var(--border2);
+  border-top-color: var(--accent); border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-title { font-size: 14px; font-weight: 500; color: var(--t2); }
+.loading-sub { font-size: 12px; color: var(--t3); }
+
+/* ── Debug panel ── */
+.debug-panel {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: var(--r);
+  padding: 12px 14px; margin-bottom: 14px; font-size: 11px; font-family: 'DM Mono', monospace;
+  color: var(--t2); line-height: 1.8;
+}
+.debug-panel summary { cursor: pointer; font-weight: 600; color: var(--t1); list-style: none; }
+.debug-panel summary::before { content: '▶  '; }
+.debug-panel[open] summary::before { content: '▼  '; }
+.debug-val { color: var(--accent); }
+
+/* ── Misc ── */
+@media (max-width: 720px) {
+  .charts-grid { grid-template-columns: 1fr; }
+  .metric-grid { grid-template-columns: 1fr 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-left">
+    <h1>Adquisiciones 2026</h1>
+    <span class="header-badge" id="header-count">—</span>
+  </div>
+  <button class="sync-btn" id="sync-btn" onclick="cargarDatos(true)">
+    <div class="sync-dot" id="sync-dot"></div>
+    <span id="sync-label">Actualizar</span>
+  </button>
+</header>
+
+<div class="container">
+
+  <!-- Loading -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loading-spinner"></div>
+    <div class="loading-title">Cargando datos desde Google Sheets</div>
+    <div class="loading-sub">Esto puede tardar unos segundos…</div>
+  </div>
+
+  <!-- App -->
+  <div id="app" style="display:none">
+
+    <div class="tabs">
+      <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
+      <button class="tab" onclick="showTab('proyectos')">Por proyecto</button>
+      <button class="tab" onclick="showTab('equipos')">Equipos</button>
+    </div>
+
+    <!-- ══════════════ DASHBOARD ══════════════ -->
+    <div id="tab-dashboard">
+      <div class="metric-grid" id="metrics"></div>
+
+      <div class="card card-full">
+        <div class="card-title">Progreso general del plan 2026</div>
+        <div class="prog-gen-track" id="prog-gen"></div>
+        <div class="prog-legend" id="prog-legend"></div>
+      </div>
+
+      <div class="card card-full">
+        <div class="card-title">Avance por estado</div>
+        <div id="prog-estados"></div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="card"><div class="card-title">Por hospital (top 10)</div><div id="ch-hosp"></div></div>
+        <div class="card"><div class="card-title">Por tipo de proyecto</div><div id="ch-tipo"></div></div>
+      </div>
+
+      <div class="card card-full">
+        <div class="card-title">Próximas aperturas</div>
+        <div id="ch-apertura"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════ PROYECTOS ══════════════ -->
+    <div id="tab-proyectos" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Agrupado por proyecto</div>
+        <div id="proy-total" style="font-size:13px;color:var(--t2)"></div>
+      </div>
+      <div id="proy-container"></div>
+    </div>
+
+    <!-- ══════════════ EQUIPOS ══════════════ -->
+    <div id="tab-equipos" style="display:none">
+      <div class="section-header">
+        <div class="section-title">Equipos registrados</div>
+        <div style="font-size:12px;color:var(--t3)">Los datos se editan en Google Sheets</div>
+      </div>
+
+      <!-- Panel de diagnóstico de estados -->
+      <details class="debug-panel" id="debug-estados" style="display:none">
+        <summary>Diagnóstico de columna ESTADO</summary>
+        <div id="debug-content"></div>
+      </details>
+
+      <div class="filters">
+        <input type="text" id="search" placeholder="Buscar equipo, hospital, proyecto…" oninput="renderTabla()">
+        <select id="f-estado" onchange="renderTabla()"><option value="">Todos los estados</option></select>
+        <select id="f-hosp" onchange="renderTabla()"><option value="">Todos los hospitales</option></select>
+        <select id="f-tipo" onchange="renderTabla()"><option value="">Todos los tipos</option></select>
+      </div>
+
+      <div class="total-bar" id="total-bar"></div>
+
+      <div class="table-wrap">
+        <table class="main">
+          <thead><tr>
+            <th>Hospital</th><th>Equipo</th><th>Tipo equipo</th><th>Q total</th>
+            <th>P. Unit.</th><th>P. Total</th><th>Proyecto</th><th>Tipo proy.</th>
+            <th>Año entrega</th><th>Expediente</th><th>Licitación</th>
+            <th>Apertura</th><th>Estado</th><th>Cheq.</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div id="empty" class="empty" style="display:none">Sin resultados para los filtros aplicados.</div>
+      <div id="tfoot" style="font-size:11px;color:var(--t3);padding:10px 4px;text-align:right;font-family:'DM Mono',monospace"></div>
+    </div>
+
+  </div><!-- /app -->
+</div><!-- /container -->
+
+<script>
+// ═══════════════════════════════════════════════════
+//  CONFIGURACIÓN
+// ═══════════════════════════════════════════════════
+var API_URL = 'https://script.google.com/macros/s/AKfycbzD-hJkihX-7wLb4DqUfGCYtIYRWEc2VdziaJ5h0EbMnZhCZAaKx67aoCCLY-Os7jD3/exec';
+
+// ── Estados conocidos con sus colores y orden de avance ──
+// Podés agregar más acá si querés un color específico.
+// Cualquier estado que aparezca en el Sheet pero NO esté acá
+// se agrega automáticamente con un color de la paleta extra.
+var ESTADOS_BASE = [
+  { v:'SIN AVANCE',       cls:'bs0', color:'#9B9890' },
+  { v:'ARMADO DE PLIEGO', cls:'bs1', color:'#7C74E8' },
+  { v:'PUBLICACION',      cls:'bs2', color:'#3D87D8' },
+  { v:'EN EVALUACION',    cls:'bs4', color:'#EF9F27' },
+  { v:'ADJUDICADO',       cls:'bs3', color:'#5A9E1A' },
+  { v:'FRACASADO',        cls:'bs5', color:'#E24B4A' },
+  { v:'DESIERTO',         cls:'bs6', color:'#B0AEA7' },
+  { v:'NO SE COMPRO',     cls:'bs7', color:'#A32D2D' }
+];
+
+// Colores extra para estados no previstos que aparezcan en el Sheet
+var COLORES_EXTRA = [
+  '#1D9E75','#C879D8','#D87B3D','#3DB8B8','#8B5E3C',
+  '#D43D7A','#4A90D9','#7B8D42','#9B59B6','#E67E22'
+];
+
+// Se construyen dinámicamente al cargar datos
+var ESTADOS      = ESTADOS_BASE.slice();
+var ESTADO_MAP   = {};
+var ESTADOS_VALIDOS = {};
+
+function reconstruirEstadoMap() {
+  ESTADO_MAP = {};
+  ESTADOS_VALIDOS = {};
+  ESTADOS.forEach(function(e) {
+    ESTADO_MAP[e.v]      = e;
+    ESTADOS_VALIDOS[e.v] = true;
+  });
+}
+reconstruirEstadoMap();
+
+var TIPO_COLOR = { 'OBRA':'#3D87D8','SUMAR':'#1D9E75','SOLO PROYECTO':'#EF9F27','2027':'#9B9890' };
+
+// ═══════════════════════════════════════════════════
+//  ESTADO: data global
+// ═══════════════════════════════════════════════════
+var agrupados = [];
+var rawCount  = 0;
+var rawEstadosMuestra = []; // para debug
+
+// ═══════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════
+function parseUSD(val) {
+  if (!val && val !== 0) return 0;
+  if (typeof val === 'number') return isNaN(val) ? 0 : val;
+  var n = parseFloat(String(val).replace(/[^0-9.]/g,''));
+  return isNaN(n) ? 0 : n;
+}
+function fmtUSD(n) {
+  if (!n) return '—';
+  return 'USD ' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function fmtFecha(s) {
+  if (!s) return '—';
+  var p = s.split('-');
+  return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : s;
+}
+function diasChip(f) {
+  if (!f) return '';
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var d   = Math.ceil((new Date(f+'T00:00:00') - hoy) / 86400000);
+  if (d < 0)  return '<span class="dias-chip dias-gris">Vencida</span>';
+  if (d === 0) return '<span class="dias-chip dias-rojo">Hoy</span>';
+  if (d <= 7)  return '<span class="dias-chip dias-rojo">'+d+'d</span>';
+  if (d <= 30) return '<span class="dias-chip dias-naranja">'+d+'d</span>';
+  return '<span class="dias-chip dias-verde">'+d+'d</span>';
+}
+function badge(e) {
+  var info = ESTADO_MAP[e] || ESTADO_MAP['SIN AVANCE'];
+  return '<span class="badge '+info.cls+'">'+(e||'SIN AVANCE')+'</span>';
+}
+
+// ═══════════════════════════════════════════════════
+//  LECTURA DE ESTADO — normalización robusta + acentos
+// ═══════════════════════════════════════════════════
+
+// Quita acentos: COMPRÓ→COMPRO, EVALUACIÓN→EVALUACION, etc.
+function quitarAcentos(s) {
+  return s
+    .replace(/[ÁÀÂÄ]/g,'A').replace(/[ÉÈÊË]/g,'E')
+    .replace(/[ÍÌÎÏ]/g,'I').replace(/[ÓÒÔÖ]/g,'O')
+    .replace(/[ÚÙÛÜ]/g,'U').replace(/Ñ/g,'N')
+    .replace(/[áàâä]/g,'a').replace(/[éèêë]/g,'e')
+    .replace(/[íìîï]/g,'i').replace(/[óòôö]/g,'o')
+    .replace(/[úùûü]/g,'u').replace(/ñ/g,'n');
+}
+// Clave normalizada para comparar
+function claveEstado(s) {
+  return quitarAcentos(String(s).trim().replace(/\s+/g,' ')).toUpperCase();
+}
+
+// Mapa clave→nombre canónico
+var ESTADO_CLAVE_MAP = {};
+function reconstruirClaveMap() {
+  ESTADO_CLAVE_MAP = {};
+  ESTADOS.forEach(function(e) { ESTADO_CLAVE_MAP[claveEstado(e.v)] = e.v; });
+}
+reconstruirClaveMap();
+
+function normalizarEstado(raw) {
+  if (!raw || String(raw).trim() === '') return 'SIN AVANCE';
+  var clave = claveEstado(raw);
+
+  // 1. Match exacto sin acentos
+  if (ESTADO_CLAVE_MAP[clave]) return ESTADO_CLAVE_MAP[clave];
+
+  // 2. Match parcial
+  for (var i = 0; i < ESTADOS.length; i++) {
+    var ck = claveEstado(ESTADOS[i].v);
+    if (ck.indexOf(clave) !== -1 || clave.indexOf(ck) !== -1) return ESTADOS[i].v;
+  }
+
+  // 3. Estado desconocido: registrar dinámicamente con color automático
+  if (!ESTADO_MAP[clave]) {
+    var colorIdx = Object.keys(ESTADO_MAP).length % COLORES_EXTRA.length;
+    var nuevo = {
+      v: clave,
+      cls: 'bs-dyn-' + Object.keys(ESTADO_MAP).length,
+      color: COLORES_EXTRA[colorIdx],
+      dinamico: true
+    };
+    ESTADOS.push(nuevo);
+    reconstruirEstadoMap();
+    reconstruirClaveMap();
+    // Inyectar CSS para el nuevo badge
+    var styleEl = document.getElementById('dyn-css') || (function(){
+      var s = document.createElement('style');
+      s.id = 'dyn-css';
+      document.head.appendChild(s);
+      return s;
+    })();
+    styleEl.textContent += '.' + nuevo.cls + '{background:' + nuevo.color + '22;color:' + nuevo.color + '}\n';
+  }
+  return clave;
+}
+
+// ═══════════════════════════════════════════════════
+//  AGRUPACIÓN
+// ═══════════════════════════════════════════════════
+function agrupar(rows) {
+  rawEstadosMuestra = [];
+  var mapa = {};
+  for (var i = 0; i < rows.length; i++) {
+    var r = rows[i];
+    if (!r['HOSPITAL'] || String(r['HOSPITAL']).indexOf('CANTIDAD') === 0) continue;
+
+    // Debug: guardar muestra de valores raw de ESTADO
+    if (rawEstadosMuestra.length < 30 && r['ESTADO'] !== undefined) {
+      var rawV = r['ESTADO'];
+      rawEstadosMuestra.push({
+        raw: JSON.stringify(rawV),
+        norm: normalizarEstado(rawV),
+        hosp: r['HOSPITAL']
+      });
+    }
+
+    var key = r['HOSPITAL']+'|||'+r['EQUIPO']+'|||'+r['TIPO']+'|||'+(r['NOMBRE PROYECTO']||'');
+    if (!mapa[key]) {
+      mapa[key] = {
+        hospital:       r['HOSPITAL'],
+        equipo:         r['EQUIPO'],
+        tipo:           r['TIPO'],
+        q_total:        0,
+        p_unit:         r['P. UNIT'],
+        p_total:        0,
+        chequeado:      r['CHEQUEADO CON SP'],
+        tipo_proyecto:  r['TIPO PROYECTO'],
+        anio_entrega:   r['AÑO ENTREGA'],
+        nombre_proyecto:r['NOMBRE PROYECTO'],
+        estado:         'SIN AVANCE',
+        estado_orden:   0,
+        expediente:     '',
+        licitacion:     '',
+        fecha_apertura: ''
+      };
+    }
+    var g = mapa[key];
+    g.q_total += (parseInt(r['Q SOLICIT.']) || 0);
+    g.p_total += parseUSD(r['P. TOTAL']);
+
+    // Tomar el estado más avanzado del grupo
+    var e    = normalizarEstado(r['ESTADO']);
+    var eIdx = -1;
+    for (var j = 0; j < ESTADOS.length; j++) { if (ESTADOS[j].v === e) { eIdx = j; break; } }
+    if (eIdx > g.estado_orden) { g.estado = e; g.estado_orden = eIdx; }
+
+    if (r['FECHA DE APERTURA'] && !g.fecha_apertura) g.fecha_apertura = r['FECHA DE APERTURA'];
+    if (r['EXPEDIENTE']        && !g.expediente)     g.expediente     = r['EXPEDIENTE'];
+    if (r['LICITACION']        && !g.licitacion)     g.licitacion     = r['LICITACION'];
+    if (r['AÑO ENTREGA']       && !g.anio_entrega)   g.anio_entrega   = r['AÑO ENTREGA'];
+  }
+  var result = [];
+  for (var k in mapa) result.push(mapa[k]);
+  return result;
+}
+
+// ═══════════════════════════════════════════════════
+//  CARGA DE DATOS — JSONP + anti-caché agresivo
+// ═══════════════════════════════════════════════════
+function cargarDatos(manual) {
+  var dot  = document.getElementById('sync-dot');
+  var lbl  = document.getElementById('sync-label');
+  var btn  = document.getElementById('sync-btn');
+  dot.className = 'sync-dot syncing';
+  lbl.textContent = 'Cargando…';
+  btn.disabled = true;
+
+  var cbName = 'gcb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+  var script  = document.createElement('script');
+  var done    = false;
+
+  var timeout = setTimeout(function() {
+    if (done) return;
+    done = true;
+    cleanup();
+    dot.className  = 'sync-dot error';
+    lbl.textContent = 'Error — reintentar';
+    btn.disabled = false;
+    if (!agrupados.length) {
+      document.getElementById('loading-screen').innerHTML =
+        '<div style="text-align:center"><p style="color:#E24B4A;font-weight:500;margin-bottom:12px">No se pudo conectar con Google Sheets</p>'
+        +'<button onclick="cargarDatos(true)" style="font-family:inherit;padding:7px 18px;font-size:13px;border:1px solid var(--border2);border-radius:8px;background:var(--surface);cursor:pointer">Reintentar</button></div>';
+    }
+  }, 12000);
+
+  function cleanup() {
+    clearTimeout(timeout);
+    delete window[cbName];
+    if (script.parentNode) script.parentNode.removeChild(script);
+  }
+
+  window[cbName] = function(rows) {
+    if (done) return;
+    done = true;
+    cleanup();
+
+    rawCount = rows.filter(function(r) {
+      return r['HOSPITAL'] && String(r['HOSPITAL']).indexOf('CANTIDAD') !== 0;
+    }).length;
+
+    agrupados = agrupar(rows);
+
+    // UI
+    dot.className   = 'sync-dot';
+    var now = new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
+    lbl.textContent = 'Actualizado ' + now;
+    btn.disabled = false;
+
+    document.getElementById('header-count').textContent =
+      agrupados.length + ' equipos · ' + rawCount + ' filas';
+
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('app').style.display = '';
+
+    renderDash();
+    renderFiltros();
+
+    // Mostrar debug en tab equipos
+    mostrarDebugEstados();
+  };
+
+  script.onerror = function() {
+    if (done) return;
+    done = true;
+    cleanup();
+    dot.className   = 'sync-dot error';
+    lbl.textContent = 'Error — reintentar';
+    btn.disabled = false;
+  };
+
+  // Anti-caché: timestamp + random + param ts que el script puede leer
+  var bust = Date.now();
+  script.src = API_URL + '?callback=' + cbName + '&nocache=' + bust + '&ts=' + bust;
+  document.head.appendChild(script);
+}
+
+// ═══════════════════════════════════════════════════
+//  DEBUG: mostrar valores raw de ESTADO
+// ═══════════════════════════════════════════════════
+function mostrarDebugEstados() {
+  var panel = document.getElementById('debug-estados');
+  var content = document.getElementById('debug-content');
+  if (!rawEstadosMuestra.length) return;
+  panel.style.display = '';
+
+  // Contar cuántos cayeron en SIN AVANCE por no ser válidos
+  var enFallback = 0;
+  for (var i = 0; i < agrupados.length; i++) {
+    if (agrupados[i].estado === 'SIN AVANCE') enFallback++;
+  }
+
+  var rows = rawEstadosMuestra.slice(0, 15).map(function(m) {
+    var ok = m.norm !== 'SIN AVANCE' || m.raw === '"SIN AVANCE"' || m.raw === '""';
+    return '<div style="margin-bottom:2px">'
+      + (ok ? '✓' : '⚠') + '  raw=<span class="debug-val">'+m.raw+'</span>'
+      + '  →  <span class="debug-val">'+m.norm+'</span>'
+      + '  <span style="color:var(--t3)">('+m.hosp+')</span></div>';
+  }).join('');
+
+  content.innerHTML =
+    '<div style="margin-bottom:8px">Equipos con estado <b>SIN AVANCE</b>: <span class="debug-val">'+enFallback+'</span> de '+agrupados.length+'</div>'
+    + '<div style="margin-bottom:6px;color:var(--t3)">Muestra de valores leídos de la columna ESTADO (primeras 15 filas):</div>'
+    + rows
+    + '<div style="margin-top:8px;color:var(--t3)">Si ves ⚠ con raw distinto al estado esperado, verificá el nombre exacto de la columna en el Sheet.</div>';
+}
+
+// ═══════════════════════════════════════════════════
+//  TABS
+// ═══════════════════════════════════════════════════
+function showTab(t) {
+  var all = ['dashboard','proyectos','equipos'];
+  all.forEach(function(id) {
+    document.getElementById('tab-'+id).style.display = id === t ? '' : 'none';
+  });
+  document.querySelectorAll('.tab').forEach(function(el, i) {
+    el.classList.toggle('active', all[i] === t);
+  });
+  if (t === 'dashboard') renderDash();
+  if (t === 'proyectos') renderProyectos();
+  if (t === 'equipos')   renderTabla();
+}
+
+// ═══════════════════════════════════════════════════
+//  DASHBOARD
+// ═══════════════════════════════════════════════════
+function renderDash() {
+  var total = agrupados.length; if (!total) return;
+  var conAp = 0, cheq = 0, hospsSet = {}, totalUSD = 0;
+  agrupados.forEach(function(d) {
+    if (d.fecha_apertura) conAp++;
+    if (d.chequeado === 'TRUE') cheq++;
+    hospsSet[d.hospital] = 1;
+    totalUSD += d.p_total;
+  });
+
+  document.getElementById('metrics').innerHTML =
+    metric('Equipos únicos', total, rawCount + ' filas en Sheet') +
+    metric('Hospitales', Object.keys(hospsSet).length, '') +
+    metric('Monto estimado', fmtUSD(totalUSD), '', true) +
+    metric('Con fecha apertura', conAp, Math.round(conAp/total*100)+'% del total') +
+    metric('Chequeados con SP', cheq, Math.round(cheq/total*100)+'% del total');
+
+  function metric(label, val, sub, small) {
+    return '<div class="metric"><div class="metric-label">'+label+'</div>'
+      + '<div class="metric-value" style="'+(small?'font-size:16px':'')+'">'+val+'</div>'
+      + (sub ? '<div class="metric-sub">'+sub+'</div>' : '')
+      + '</div>';
+  }
+
+  // Contar por estado
+  var counts = {};
+  ESTADOS.forEach(function(e) { counts[e.v] = 0; });
+  agrupados.forEach(function(d) { counts[d.estado] = (counts[d.estado]||0) + 1; });
+
+  var genHTML = '', legendHTML = '', progHTML = '';
+  ESTADOS.forEach(function(est) {
+    var c = counts[est.v] || 0;
+    var pct = Math.round(c / total * 100);
+    genHTML += '<div class="prog-seg" style="width:'+pct+'%;background:'+est.color+'" title="'+est.v+': '+c+' ('+pct+'%)"></div>';
+    legendHTML += '<div class="prog-legend-item"><div class="prog-dot" style="background:'+est.color+'"></div><span>'+est.v+' ('+c+')</span></div>';
+    progHTML += '<div class="prog-single">'
+      + '<div class="prog-header"><span class="prog-name">'+est.v+'</span>'
+      + '<span class="prog-pct">'+c+' · '+pct+'%</span></div>'
+      + '<div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+est.color+'"></div></div>'
+      + '</div>';
+  });
+  document.getElementById('prog-gen').innerHTML    = genHTML;
+  document.getElementById('prog-legend').innerHTML = legendHTML;
+  document.getElementById('prog-estados').innerHTML = progHTML;
+
+  // Hospitales
+  var hospC = {};
+  agrupados.forEach(function(d) { hospC[d.hospital] = (hospC[d.hospital]||0)+1; });
+  var top10 = Object.entries(hospC).sort(function(a,b){return b[1]-a[1];}).slice(0,10);
+  barChart('ch-hosp', Object.fromEntries(top10), function() { return '#7C74E8'; });
+
+  // Tipos
+  var tipoC = {};
+  agrupados.forEach(function(d) { if (d.tipo_proyecto) tipoC[d.tipo_proyecto] = (tipoC[d.tipo_proyecto]||0)+1; });
+  barChart('ch-tipo', tipoC, function(k) { return TIPO_COLOR[k] || '#9B9890'; });
+
+  // Próximas aperturas
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var prox = agrupados
+    .filter(function(d) { return d.fecha_apertura; })
+    .map(function(d) { return { d:d, diff: Math.ceil((new Date(d.fecha_apertura+'T00:00:00')-hoy)/86400000) }; })
+    .sort(function(a,b) { return a.diff-b.diff; })
+    .slice(0,10);
+
+  var apEl = document.getElementById('ch-apertura');
+  if (!prox.length) {
+    apEl.innerHTML = '<div style="color:var(--t3);font-size:13px;padding:8px">Ningún equipo tiene fecha de apertura cargada.</div>';
+  } else {
+    var rows = prox.map(function(p) {
+      var d = p.d;
+      return '<tr>'
+        +'<td style="font-weight:600">'+d.hospital+'</td>'
+        +'<td>'+d.equipo+'</td>'
+        +'<td style="color:var(--t2)">'+(d.nombre_proyecto||'—')+'</td>'
+        +'<td style="color:var(--t3);font-family:DM Mono,monospace;font-size:11px">'+(d.expediente||'—')+'</td>'
+        +'<td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:12px">'+fmtFecha(d.fecha_apertura)+'</td>'
+        +'<td>'+badge(d.estado)+'</td>'
+        +'<td>'+diasChip(d.fecha_apertura)+'</td>'
+        +'</tr>';
+    }).join('');
+    apEl.innerHTML = '<table class="urg-table"><thead><tr><th>Hospital</th><th>Equipo</th><th>Proyecto</th><th>Expediente</th><th>Fecha</th><th>Estado</th><th>Días</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  }
+}
+
+function barChart(id, counts, colorFn) {
+  var el = document.getElementById(id); if (!el) return;
+  var entries = Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
+  var max = entries.reduce(function(m,e){return Math.max(m,e[1]);}, 1);
+  el.innerHTML = entries.map(function(e) {
+    var k=e[0],v=e[1];
+    return '<div class="bar-row">'
+      +'<div class="bar-label" title="'+k+'">'+k+'</div>'
+      +'<div class="bar-track"><div class="bar-fill" style="width:'+Math.round(v/max*100)+'%;background:'+colorFn(k)+'"></div></div>'
+      +'<div class="bar-count">'+v+'</div>'
+      +'</div>';
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════
+//  PROYECTOS
+// ═══════════════════════════════════════════════════
+function renderProyectos() {
+  var grupos = {};
+  agrupados.forEach(function(d) {
+    var k = d.nombre_proyecto || '(sin proyecto)';
+    if (!grupos[k]) grupos[k] = [];
+    grupos[k].push(d);
+  });
+  var sorted = Object.entries(grupos).sort(function(a,b){return b[1].length-a[1].length;});
+  var totalGral = agrupados.reduce(function(s,d){return s+d.p_total;}, 0);
+  document.getElementById('proy-total').textContent =
+    'Total: ' + fmtUSD(totalGral) + ' · ' + sorted.length + ' proyectos';
+
+  var html = sorted.map(function(entry, idx) {
+    var nombre = entry[0], items = entry[1];
+    var monto = items.reduce(function(s,d){return s+d.p_total;},0);
+    var hosps = Object.keys(items.reduce(function(h,d){h[d.hospital]=1;return h;},{})).sort().join(', ');
+    var estados = items.reduce(function(m,d){m[d.estado]=(m[d.estado]||0)+1;return m;},{});
+    var badgesHTML = Object.entries(estados).map(function(e){
+      return badge(e[0])+'<span style="font-size:10px;color:var(--t3);margin-left:2px">×'+e[1]+'</span>';
+    }).join(' ');
+    var rowsHTML = items.map(function(d) {
+      return '<tr>'
+        +'<td style="font-weight:600">'+d.hospital+'</td>'
+        +'<td>'+d.equipo+'</td>'
+        +'<td style="color:var(--t2)">'+(d.tipo||'—')+'</td>'
+        +'<td style="text-align:center;font-weight:600">'+(d.q_total||'—')+'</td>'
+        +'<td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">'+fmtUSD(d.p_total)+'</td>'
+        +'<td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">'+fmtFecha(d.fecha_apertura)+'</td>'
+        +'<td>'+diasChip(d.fecha_apertura)+'</td>'
+        +'<td>'+badge(d.estado)+'</td>'
+        +'</tr>';
+    }).join('');
+    return '<div class="proy-card">'
+      +'<div class="proy-header" onclick="toggleProy('+idx+')">'
+        +'<div style="flex:1"><div class="proy-name">'+nombre+'</div>'
+        +'<div class="proy-hospitals">'+hosps+'</div>'
+        +'<div class="proy-badges">'+badgesHTML+'</div></div>'
+        +'<div class="proy-meta">'
+          +'<span class="proy-count">'+items.length+' equipos</span>'
+          +'<span class="proy-monto">'+fmtUSD(monto)+'</span>'
+          +'<span class="proy-arrow" id="arrow-'+idx+'">▶</span>'
+        +'</div>'
+      +'</div>'
+      +'<div class="proy-body" id="proy-body-'+idx+'">'
+        +'<table class="proy-table"><thead><tr><th>Hospital</th><th>Equipo</th><th>Tipo</th><th>Q</th><th>P. Total</th><th>Apertura</th><th>Días</th><th>Estado</th></tr></thead>'
+        +'<tbody>'+rowsHTML+'</tbody></table>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+  document.getElementById('proy-container').innerHTML = html;
+}
+
+function toggleProy(idx) {
+  document.getElementById('proy-body-'+idx).classList.toggle('open');
+  document.getElementById('arrow-'+idx).classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════
+//  EQUIPOS
+// ═══════════════════════════════════════════════════
+function renderFiltros() {
+  var hospsSet = {}, tiposSet = {};
+  agrupados.forEach(function(d) {
+    if (d.hospital)       hospsSet[d.hospital] = 1;
+    if (d.tipo_proyecto)  tiposSet[d.tipo_proyecto] = 1;
+  });
+  var selH = document.getElementById('f-hosp');
+  var selT = document.getElementById('f-tipo');
+  var selE = document.getElementById('f-estado');
+  selH.innerHTML = '<option value="">Todos los hospitales</option>'
+    + Object.keys(hospsSet).sort().map(function(h){return '<option>'+h+'</option>';}).join('');
+  selT.innerHTML = '<option value="">Todos los tipos</option>'
+    + Object.keys(tiposSet).sort().map(function(t){return '<option>'+t+'</option>';}).join('');
+  // Estados: generados desde los datos reales (orden de avance)
+  selE.innerHTML = '<option value="">Todos los estados</option>'
+    + ESTADOS.map(function(e){return '<option value="'+e.v+'">'+e.v+'</option>';}).join('');
+}
+
+function renderTabla() {
+  var q  = (document.getElementById('search').value||'').toLowerCase();
+  var fE = document.getElementById('f-estado').value||'';
+  var fH = document.getElementById('f-hosp').value||'';
+  var fT = document.getElementById('f-tipo').value||'';
+
+  var filtered = agrupados.filter(function(d) {
+    if (fE && d.estado !== fE) return false;
+    if (fH && d.hospital !== fH) return false;
+    if (fT && d.tipo_proyecto !== fT) return false;
+    if (q) {
+      var txt = (d.hospital+d.equipo+d.tipo+d.nombre_proyecto+d.expediente+d.licitacion).toLowerCase();
+      if (txt.indexOf(q) === -1) return false;
+    }
+    return true;
+  });
+
+  var totalF = filtered.reduce(function(s,d){return s+d.p_total;},0);
+  var totalG = agrupados.reduce(function(s,d){return s+d.p_total;},0);
+
+  document.getElementById('total-bar').innerHTML =
+    '<span class="total-label">Total visible:</span>'
+    +'<span class="total-value">'+fmtUSD(totalF)+'</span>'
+    +'<span class="total-sub">de '+fmtUSD(totalG)+' total · '+filtered.length+' de '+agrupados.length+' equipos</span>';
+
+  var tbody = document.getElementById('tbody');
+  var empty = document.getElementById('empty');
+  if (!filtered.length) { tbody.innerHTML = ''; empty.style.display = ''; return; }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(function(d) {
+    return '<tr>'
+      +'<td style="font-weight:600">'+d.hospital+'</td>'
+      +'<td>'+d.equipo+'</td>'
+      +'<td style="color:var(--t2)">'+(d.tipo||'—')+'</td>'
+      +'<td style="text-align:center;font-weight:600">'+(d.q_total||'—')+'</td>'
+      +'<td style="white-space:nowrap;font-size:11px;color:var(--t2)">'+(d.p_unit||'—')+'</td>'
+      +'<td style="white-space:nowrap;font-family:DM Mono,monospace;font-size:11px">'+fmtUSD(d.p_total)+'</td>'
+      +'<td style="color:var(--t2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+(d.nombre_proyecto||'')+'">'+(d.nombre_proyecto||'—')+'</td>'
+      +'<td>'+(d.tipo_proyecto||'—')+'</td>'
+      +'<td style="color:var(--t3);text-align:center;font-family:DM Mono,monospace;font-size:11px">'+(d.anio_entrega||'—')+'</td>'
+      +'<td style="color:var(--t3);font-size:11px;font-family:DM Mono,monospace">'+(d.expediente||'—')+'</td>'
+      +'<td style="color:var(--t3);font-size:11px;font-family:DM Mono,monospace">'+(d.licitacion||'—')+'</td>'
+      +'<td style="white-space:nowrap;font-size:11px">'+fmtFecha(d.fecha_apertura)+' '+diasChip(d.fecha_apertura)+'</td>'
+      +'<td>'+badge(d.estado)+'</td>'
+      +'<td><span class="tag-cheq '+(d.chequeado==='TRUE'?'tag-si':'tag-no')+'">'+(d.chequeado==='TRUE'?'Sí':'No')+'</span></td>'
+      +'</tr>';
+  }).join('');
+
+  document.getElementById('tfoot').textContent =
+    'Mostrando ' + filtered.length + ' de ' + agrupados.length + ' equipos únicos';
+}
+
+// ═══════════════════════════════════════════════════
+//  INICIO
+// ═══════════════════════════════════════════════════
+cargarDatos(false);
+</script>
+</body>
+</html>
