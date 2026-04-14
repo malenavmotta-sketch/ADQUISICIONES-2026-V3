@@ -1,719 +1,241 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Adquisiciones 2026</title>
-<style>
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
-:root{--bg1:#ffffff;--bg2:#f1efe8;--t1:#1a1a1a;--t2:#5f5e5a;--t3:#888780;--b1:rgba(0,0,0,0.12);--b2:rgba(0,0,0,0.25);--r1:8px;--r2:12px;--accent:#3B5BDB}
-@media(prefers-color-scheme:dark){
-  :root{--bg1:#1e1e1c;--bg2:#2a2a28;--t1:#f0ede6;--t2:#b4b2a9;--t3:#888780;--b1:rgba(255,255,255,0.12);--b2:rgba(255,255,255,0.25);--accent:#748FFC}
-  body{background:#141412;color:#f0ede6}
-  .bs0{background:#2C2C2A;color:#D3D1C7}.bs1{background:#26215C;color:#CECBF6}
-  .bs2{background:#042C53;color:#B5D4F4}.bs3{background:#173404;color:#C0DD97}
-  .bs4{background:#412402;color:#FAC775}.bs5{background:#501313;color:#F7C1C1}
-  .bs6{background:#2C2C2A;color:#D3D1C7}.bs7{background:#501313;color:#F7C1C1}
-  .dias-rojo{background:#501313;color:#F7C1C1}.dias-naranja{background:#412402;color:#FAC775}
-  .dias-verde{background:#173404;color:#C0DD97}.dias-gris{background:#2C2C2A;color:#D3D1C7}
-  .tag-si{background:#173404;color:#C0DD97}.tag-no{background:#2C2C2A;color:#B4B2A9}
-  .ms-btn{background:var(--bg1);color:var(--t2)}
-  .ms-panel{background:var(--bg1);border-color:var(--b2)}
-}
-header{background:var(--bg1);border-bottom:0.5px solid var(--b1);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
-.header-left{display:flex;align-items:baseline;gap:12px}
-header h1{font-size:17px;font-weight:500}
-.sync-btn{padding:5px 12px;font-size:12px;border:0.5px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:6px}
-.sync-btn:hover{background:var(--bg2)}
-.sync-dot{width:7px;height:7px;border-radius:50%;background:#639922;flex-shrink:0}
-.sync-dot.loading{background:#EF9F27;animation:pulse 1s infinite}
-.sync-dot.error{background:#E24B4A}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
-.container{max-width:1300px;margin:0 auto;padding:1.5rem}
-.tabs{display:flex;gap:4px;margin-bottom:1.5rem;border-bottom:0.5px solid var(--b1)}
-.tab{padding:8px 16px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--t2);border-bottom:2px solid transparent;margin-bottom:-0.5px}
-.tab.active{color:var(--t1);border-bottom:2px solid var(--t1);font-weight:500}
-.metric-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:1.5rem}
-.metric{background:var(--bg2);border-radius:var(--r1);padding:1rem}
-.metric-label{font-size:12px;color:var(--t2);margin-bottom:4px}
-.metric-value{font-size:22px;font-weight:500}
-.metric-sub{font-size:11px;color:var(--t3);margin-top:2px}
-.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.5rem}
-.card{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);padding:1rem 1.25rem}
-.card-full{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);padding:1rem 1.25rem;margin-bottom:1.5rem}
-.card-title{font-size:13px;font-weight:500;color:var(--t2);margin-bottom:12px}
-.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.bar-label{font-size:12px;color:var(--t2);width:130px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.bar-track{flex:1;height:14px;background:var(--bg2);border-radius:7px;overflow:hidden}
-.bar-fill{height:100%;border-radius:7px}
-.bar-count{font-size:12px;color:var(--t2);width:28px;text-align:right;flex-shrink:0}
-.prog-single{margin-bottom:10px}
-.prog-header{display:flex;justify-content:space-between;margin-bottom:4px}
-.prog-name{font-size:12px;color:var(--t2);font-weight:500}
-.prog-pct{font-size:12px;color:var(--t3)}
-.prog-track{height:10px;background:var(--bg2);border-radius:5px;overflow:hidden}
-.prog-fill{height:100%;border-radius:5px}
-.prog-gen-track{height:18px;background:var(--bg2);border-radius:9px;overflow:hidden;display:flex;margin-bottom:6px}
-.prog-seg{height:100%}
-.prog-legend{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
-.prog-legend-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--t2)}
-.prog-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
-.urg-table{width:100%;border-collapse:collapse;font-size:13px}
-.urg-table th{text-align:left;padding:7px 10px;color:var(--t2);font-weight:500;border-bottom:0.5px solid var(--b1);font-size:12px}
-.urg-table td{padding:7px 10px;border-bottom:0.5px solid var(--b1);vertical-align:middle}
-.urg-table tr:last-child td{border-bottom:none}
-.dias-chip{display:inline-block;font-size:11px;font-weight:500;padding:2px 9px;border-radius:20px;white-space:nowrap}
-.dias-rojo{background:#FCEBEB;color:#A32D2D}.dias-naranja{background:#FAEEDA;color:#633806}
-.dias-verde{background:#EAF3DE;color:#27500A}.dias-gris{background:#F1EFE8;color:#444441}
-.proy-card{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);margin-bottom:10px;overflow:hidden}
-.proy-header{padding:.85rem 1.25rem;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.proy-header:hover{background:var(--bg2)}
-.proy-name{font-size:14px;font-weight:500}
-.proy-meta{display:flex;align-items:center;gap:12px;flex-shrink:0}
-.proy-count{font-size:12px;color:var(--t2);background:var(--bg2);padding:2px 8px;border-radius:20px}
-.proy-monto{font-size:13px;font-weight:500}
-.proy-arrow{font-size:13px;color:var(--t3);transition:transform .2s}
-.proy-arrow.open{transform:rotate(90deg)}
-.proy-body{display:none;border-top:0.5px solid var(--b1);overflow-x:auto}
-.proy-body.open{display:block}
-.proy-table{width:100%;border-collapse:collapse;font-size:12px;min-width:700px}
-.proy-table th{padding:6px 10px;font-size:11px;color:var(--t2);font-weight:500;background:var(--bg2);text-align:left;border-bottom:0.5px solid var(--b1)}
-.proy-table td{padding:6px 10px;border-bottom:0.5px solid var(--b1)}
-.proy-table tr:last-child td{border-bottom:none}
-.proy-table tr:hover td{background:var(--bg2)}
-.section-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.section-title{font-size:15px;font-weight:500}
-/* Filtros */
-.filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;align-items:center}
-.filters input{font-size:13px;padding:6px 10px;border:0.5px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t1);min-width:180px}
-/* Multi-select */
-.ms-wrap{position:relative;display:inline-block}
-.ms-btn{display:flex;align-items:center;gap:6px;padding:6px 10px;font-size:13px;font-family:inherit;border:0.5px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t2);cursor:pointer;white-space:nowrap;user-select:none}
-.ms-btn:hover{background:var(--bg2)}
-.ms-btn.has-sel{border-color:var(--accent);color:var(--accent)}
-.ms-count{background:var(--accent);color:#fff;border-radius:20px;font-size:10px;font-weight:700;padding:1px 6px;min-width:18px;text-align:center}
-.ms-panel{display:none;position:absolute;top:calc(100% + 4px);left:0;background:var(--bg1);border:0.5px solid var(--b2);border-radius:var(--r2);box-shadow:0 4px 16px rgba(0,0,0,.14);z-index:300;min-width:200px;max-width:300px;max-height:260px;overflow-y:auto;padding:4px 0}
-.ms-panel.open{display:block}
-.ms-item{display:flex;align-items:center;gap:8px;padding:6px 12px;font-size:13px;cursor:pointer}
-.ms-item:hover{background:var(--bg2)}
-.ms-item input{accent-color:var(--accent);width:14px;height:14px;flex-shrink:0;cursor:pointer}
-.ms-item label{cursor:pointer;flex:1}
-.ms-sep{height:0.5px;background:var(--b1);margin:3px 0}
-.ms-clear{padding:5px 12px;font-size:11px;color:var(--accent);cursor:pointer;font-weight:500}
-.ms-clear:hover{text-decoration:underline}
-.ms-empty{padding:8px 12px;font-size:12px;color:var(--t3)}
-/* Chips */
-.active-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.active-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 8px 3px 10px;border-radius:20px;font-size:11px;font-weight:500;background:var(--accent);color:#fff}
-.chip-x{cursor:pointer;font-size:14px;line-height:1;opacity:.8}
-.chip-x:hover{opacity:1}
-.btn-limpiar{font-family:inherit;font-size:12px;padding:6px 10px;border:0.5px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t3);cursor:pointer}
-.btn-limpiar:hover{background:var(--bg2)}
-.total-bar{background:var(--bg2);border-radius:var(--r1);padding:.6rem 1rem;margin-bottom:12px;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-.total-label{font-size:12px;color:var(--t2)}
-.total-value{font-size:18px;font-weight:500}
-.total-sub{font-size:12px;color:var(--t3)}
-.badge{display:inline-block;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;white-space:nowrap}
-.bs0{background:#F1EFE8;color:#444441}.bs1{background:#EEEDFE;color:#3C3489}
-.bs2{background:#E6F1FB;color:#0C447C}.bs3{background:#EAF3DE;color:#27500A}
-.bs4{background:#FAEEDA;color:#633806}.bs5{background:#FCEBEB;color:#791F1F}
-.bs6{background:#F1EFE8;color:#5F5E5A}.bs7{background:#FCEBEB;color:#A32D2D}
-.table-wrap{overflow-x:auto}
-table.main{width:100%;border-collapse:collapse;font-size:13px;min-width:1000px}
-table.main th{text-align:left;padding:8px 10px;color:var(--t2);font-weight:500;border-bottom:0.5px solid var(--b1);white-space:nowrap;background:var(--bg1);position:sticky;top:0;z-index:1}
-table.main td{padding:7px 10px;border-bottom:0.5px solid var(--b1);vertical-align:middle}
-table.main tr:last-child td{border-bottom:none}
-table.main tr:hover td{background:var(--bg2)}
-.tag-cheq{display:inline-block;font-size:11px;padding:1px 7px;border-radius:20px}
-.tag-si{background:#EAF3DE;color:#27500A}.tag-no{background:#F1EFE8;color:#5F5E5A}
-.empty{text-align:center;padding:3rem;color:var(--t3);font-size:14px}
-.loading-screen{text-align:center;padding:4rem;color:var(--t3)}
-/* Distribución */
-.dist-card{background:var(--bg1);border:0.5px solid var(--b1);border-radius:var(--r2);margin-bottom:10px;overflow:hidden}
-.dist-header{padding:.85rem 1.25rem;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:8px}
-.dist-header:hover{background:var(--bg2)}
-.dist-name{font-size:14px;font-weight:500;flex:1}
-.dist-meta{display:flex;align-items:center;gap:10px;flex-shrink:0}
-.dist-hosps{font-size:12px;color:var(--t2);background:var(--bg2);padding:2px 8px;border-radius:20px}
-.dist-qty{font-size:13px;font-weight:700;color:var(--accent)}
-.dist-monto{font-size:12px;color:var(--t2)}
-.dist-body{display:none;border-top:0.5px solid var(--b1);overflow-x:auto}
-.dist-body.open{display:block}
-.dist-table{width:100%;border-collapse:collapse;font-size:12px;min-width:560px}
-.dist-table th{padding:6px 10px;font-size:11px;color:var(--t2);font-weight:500;background:var(--bg2);text-align:left;border-bottom:0.5px solid var(--b1)}
-.dist-table td{padding:7px 10px;border-bottom:0.5px solid var(--b1);vertical-align:middle}
-.dist-table tr:last-child td{border-bottom:none}
-.dist-table tr:hover td{background:var(--bg2)}
-.dist-qty-cell{font-weight:700;color:var(--accent);text-align:center}
-@media(max-width:700px){.charts-grid{grid-template-columns:1fr}.metric-grid{grid-template-columns:1fr 1fr}}
-</style>
-</head>
-<body>
-<header>
-  <div class="header-left">
-    <h1>Adquisiciones 2026</h1>
-    <span id="header-count" style="font-size:13px;color:var(--t3)"></span>
-  </div>
-  <button class="sync-btn" onclick="cargarDatos(true)">
-    <div class="sync-dot" id="sync-dot"></div>
-    <span id="sync-label">Actualizar</span>
-  </button>
-</header>
-<div class="container">
-  <div id="loading-screen" class="loading-screen">
-    <div class="sync-dot loading" style="width:12px;height:12px;margin:0 auto 8px"></div>
-    <p>Cargando datos desde Google Sheets...</p>
-  </div>
-  <div id="app" style="display:none">
-    <div class="tabs">
-      <button class="tab active" onclick="showTab('dashboard')">Dashboard</button>
-      <button class="tab" onclick="showTab('proyectos')">Por proyecto</button>
-      <button class="tab" onclick="showTab('equipos')">Equipos</button>
-      <button class="tab" onclick="showTab('distribucion')">Distribución</button>
-    </div>
-
-    <!-- DASHBOARD -->
-    <div id="tab-dashboard">
-      <div class="metric-grid" id="metrics"></div>
-      <div class="card-full">
-        <div class="card-title">Progreso general del plan 2026</div>
-        <div class="prog-gen-track" id="prog-gen"></div>
-        <div class="prog-legend" id="prog-legend"></div>
-      </div>
-      <div class="card-full">
-        <div class="card-title">Avance por estado</div>
-        <div id="prog-estados"></div>
-      </div>
-      <div class="charts-grid">
-        <div class="card"><div class="card-title">Por hospital (top 10)</div><div id="ch-hosp"></div></div>
-        <div class="card"><div class="card-title">Por tipo de proyecto</div><div id="ch-tipo"></div></div>
-      </div>
-      <div class="card-full">
-        <div class="card-title">Proximas aperturas</div>
-        <div id="ch-apertura"></div>
-      </div>
-    </div>
-
-    <!-- PROYECTOS -->
-    <div id="tab-proyectos" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Agrupado por proyecto</div>
-        <div id="proy-total" style="font-size:13px;color:var(--t2)"></div>
-      </div>
-      <div id="proy-container"></div>
-    </div>
-
-    <!-- EQUIPOS -->
-    <div id="tab-equipos" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Equipos registrados</div>
-        <div style="font-size:12px;color:var(--t3)">Los datos se editan en Google Sheets</div>
-      </div>
-      <div class="filters">
-        <input type="text" id="search" placeholder="Buscar equipo, hospital, proyecto..." oninput="renderTabla()">
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-estado" onclick="toggleMs('estado',event)">Estado <span class="ms-count" id="ms-cnt-estado" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-estado"></div>
-        </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-hosp" onclick="toggleMs('hosp',event)">Hospital <span class="ms-count" id="ms-cnt-hosp" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-hosp"></div>
-        </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-tipo" onclick="toggleMs('tipo',event)">Tipo proyecto <span class="ms-count" id="ms-cnt-tipo" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-tipo"></div>
-        </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-proy" onclick="toggleMs('proy',event)">Proyecto <span class="ms-count" id="ms-cnt-proy" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-proy"></div>
-        </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-lic" onclick="toggleMs('lic',event)">Licitación <span class="ms-count" id="ms-cnt-lic" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-lic"></div>
-        </div>
-        <div class="ms-wrap">
-          <button class="ms-btn" id="ms-btn-anio" onclick="toggleMs('anio',event)">Año entrega <span class="ms-count" id="ms-cnt-anio" style="display:none">0</span></button>
-          <div class="ms-panel" id="ms-panel-anio"></div>
-        </div>
-        <button class="btn-limpiar" onclick="limpiarFiltros()">&#x2715; Limpiar</button>
-      </div>
-      <div class="active-chips" id="active-chips"></div>
-      <div class="total-bar" id="total-bar"></div>
-      <div class="table-wrap">
-        <table class="main">
-          <thead><tr>
-            <th>Hospital</th><th>Equipo</th><th>Tipo equipo</th><th>Q total</th>
-            <th>P. Unit.</th><th>P. Total</th><th>Proyecto</th><th>Tipo proy.</th>
-            <th>Año entrega</th><th>Expediente</th><th>Licitacion</th>
-            <th>Apertura</th><th>Estado</th><th>Cheq.</th>
-          </tr></thead>
-          <tbody id="tbody"></tbody>
-        </table>
-      </div>
-      <div id="empty" class="empty" style="display:none">Sin resultados.</div>
-      <div id="tfoot" style="font-size:12px;color:var(--t3);padding:8px 4px;text-align:right"></div>
-    </div>
-
-    <!-- DISTRIBUCIÓN -->
-    <div id="tab-distribucion" style="display:none">
-      <div class="section-header">
-        <div class="section-title">Distribución de equipos por hospital</div>
-        <div id="dist-total" style="font-size:13px;color:var(--t2)"></div>
-      </div>
-      <div class="filters" style="margin-bottom:12px">
-        <input type="text" id="dist-search" placeholder="Buscar equipo..." oninput="renderDistribucion()" style="max-width:300px">
-      </div>
-      <div id="dist-container"></div>
-    </div>
-
-  </div>
-</div>
 <script>
+// URL de tu API
 var API_URL = 'https://script.google.com/macros/s/AKfycbzD-hJkihX-7wLb4DqUfGCYtIYRWEc2VdziaJ5h0EbMnZhCZAaKx67aoCCLY-Os7jD3/exec';
 
-var ESTADOS = [
-  {v:'SIN AVANCE',       cls:'bs0', color:'#888780'},
-  {v:'ARMADO DE PLIEGO', cls:'bs1', color:'#7F77DD'},
-  {v:'PUBLICACION',      cls:'bs2', color:'#378ADD'},
-  {v:'EN EVALUACION',    cls:'bs4', color:'#EF9F27'},
-  {v:'ADJUDICADO',       cls:'bs3', color:'#639922'},
-  {v:'FRACASADO',        cls:'bs5', color:'#E24B4A'},
-  {v:'DESIERTO',         cls:'bs6', color:'#B4B2A9'},
-  {v:'NO SE COMPRO',     cls:'bs7', color:'#A32D2D'}
-];
-var ESTADO_MAP = {};
-for(var i=0;i<ESTADOS.length;i++) ESTADO_MAP[ESTADOS[i].v]=ESTADOS[i];
-var ESTADOS_VALIDOS = {};
-for(var i=0;i<ESTADOS.length;i++) ESTADOS_VALIDOS[ESTADOS[i].v]=true;
-var TIPO_COLOR = {'OBRA':'#378ADD','SUMAR':'#1D9E75','SOLO PROYECTO':'#EF9F27','2027':'#888780'};
-var agrupados = [], rawCount = 0;
+var agrupados = [];
+var filtrosActivos = { estado: [], proy: [], hosp: [] };
 
-// Normalización robusta de estado (ignora tildes)
-function quitarAcentos(s){
-  return s.replace(/[ÁÀÂÄ]/g,'A').replace(/[ÉÈÊË]/g,'E').replace(/[ÍÌÎÏ]/g,'I')
-          .replace(/[ÓÒÔÖ]/g,'O').replace(/[ÚÙÛÜ]/g,'U').replace(/Ñ/g,'N')
-          .replace(/[áàâä]/g,'a').replace(/[éèêë]/g,'e').replace(/[íìîï]/g,'i')
-          .replace(/[óòôö]/g,'o').replace(/[úùûü]/g,'u').replace(/ñ/g,'n');
-}
-function claveEstado(s){ return quitarAcentos(String(s).trim().replace(/\s+/g,' ')).toUpperCase(); }
-var ESTADO_CLAVE_MAP = {};
-function reconstruirClaveMap(){ ESTADO_CLAVE_MAP={}; for(var i=0;i<ESTADOS.length;i++) ESTADO_CLAVE_MAP[claveEstado(ESTADOS[i].v)]=ESTADOS[i].v; }
-reconstruirClaveMap();
-function normalizarEstado(raw){
-  if(!raw||String(raw).trim()==='') return 'SIN AVANCE';
-  var clave=claveEstado(raw);
-  if(ESTADO_CLAVE_MAP[clave]) return ESTADO_CLAVE_MAP[clave];
-  for(var i=0;i<ESTADOS.length;i++){ var ck=claveEstado(ESTADOS[i].v); if(ck.indexOf(clave)!==-1||clave.indexOf(ck)!==-1) return ESTADOS[i].v; }
-  return 'SIN AVANCE';
-}
-
-function parseUSD(value){
-  if(value===null||value===undefined||value==='') return 0;
-  if(typeof value==='boolean') return 0;
-  if(typeof value==='number') return isNaN(value)?0:value;
-  var n=parseFloat(String(value).replace(/[^0-9.]/g,''));
-  return isNaN(n)?0:n;
-}
-function fmtUSD(n){ if(!n) return '\u2014'; return 'USD '+n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
-function fmtFecha(s){ if(!s) return '\u2014'; var p=s.split('-'); return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:s; }
-function diasChip(f){
-  if(!f) return '';
-  var hoy=new Date(); hoy.setHours(0,0,0,0);
-  var d=Math.ceil((new Date(f+'T00:00:00')-hoy)/86400000);
-  if(d<0)  return '<span class="dias-chip dias-gris">Vencida</span>';
-  if(d===0) return '<span class="dias-chip dias-rojo">Hoy</span>';
-  if(d<=7)  return '<span class="dias-chip dias-rojo">'+d+' dias</span>';
-  if(d<=30) return '<span class="dias-chip dias-naranja">'+d+' dias</span>';
-  return '<span class="dias-chip dias-verde">'+d+' dias</span>';
-}
-function badge(e){ var info=ESTADO_MAP[e]||ESTADO_MAP['SIN AVANCE']; return '<span class="badge '+info.cls+'">'+(e||'SIN AVANCE')+'</span>'; }
-
-function agrupar(rows){
-  var mapa={};
-  for(var i=0;i<rows.length;i++){
-    var r=rows[i];
-    if(!r['HOSPITAL']||r['HOSPITAL'].indexOf('CANTIDAD')===0) continue;
-    var key=r['HOSPITAL']+'|||'+r['EQUIPO']+'|||'+r['TIPO']+'|||'+(r['NOMBRE PROYECTO']||'');
-    if(!mapa[key]){
-      mapa[key]={hospital:r['HOSPITAL'],equipo:r['EQUIPO'],tipo:r['TIPO'],q_total:0,p_unit:r['P. UNIT'],p_total:0,
-        chequeado:r['CHEQUEADO CON SP'],tipo_proyecto:r['TIPO PROYECTO'],anio_entrega:r['AÑO ENTREGA'],
-        nombre_proyecto:r['NOMBRE PROYECTO'],estado:'SIN AVANCE',estado_orden:0,
-        expediente:'',licitacion:'',fecha_apertura:'',observacion:r['OBSERVACION']};
-    }
-    var g=mapa[key];
-    g.q_total+=(parseInt(r['Q SOLICIT.'])||0);
-    g.p_total+=parseUSD(r['P. TOTAL']);
-    var e=normalizarEstado(r['ESTADO']);
-    var eIdx=-1; for(var j=0;j<ESTADOS.length;j++){if(ESTADOS[j].v===e){eIdx=j;break;}}
-    if(eIdx>g.estado_orden){g.estado=e;g.estado_orden=eIdx;}
-    if(r['FECHA DE APERTURA']&&!g.fecha_apertura) g.fecha_apertura=r['FECHA DE APERTURA'];
-    if(r['EXPEDIENTE']&&!g.expediente) g.expediente=r['EXPEDIENTE'];
-    if(r['LICITACION']&&!g.licitacion) g.licitacion=r['LICITACION'];
-    if(r['AÑO ENTREGA']&&!g.anio_entrega) g.anio_entrega=r['AÑO ENTREGA'];
-  }
-  var result=[]; for(var k in mapa) result.push(mapa[k]); return result;
+// Formateo de moneda
+function fmtUSD(n){ 
+    return (n && !isNaN(n)) ? 'USD ' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'; 
 }
 
 function cargarDatos(manual){
-  var dot=document.getElementById('sync-dot'),lbl=document.getElementById('sync-label');
-  dot.className='sync-dot loading'; lbl.textContent='Cargando...';
-  var cbName='cb_'+Date.now(), script=document.createElement('script');
-  var timeout=setTimeout(function(){
-    dot.className='sync-dot error'; lbl.textContent='Error al cargar';
-    document.getElementById('loading-screen').innerHTML='<p style="color:#E24B4A;font-size:14px">No se pudo cargar el Sheet.<br><br><button onclick="cargarDatos(true)" style="margin-top:8px;padding:6px 14px;font-size:13px;border:0.5px solid rgba(0,0,0,0.25);border-radius:8px;background:#fff;cursor:pointer">Reintentar</button></p>';
-    delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script);
-  },10000);
-  window[cbName]=function(rows){
-    clearTimeout(timeout); delete window[cbName]; if(script.parentNode) script.parentNode.removeChild(script);
-    rawCount=rows.filter(function(r){return r['HOSPITAL']&&String(r['HOSPITAL']).indexOf('CANTIDAD')!==0;}).length;
-    agrupados=agrupar(rows);
-    dot.className='sync-dot';
-    var now=new Date().toLocaleTimeString('es-AR',{hour:'2-digit',minute:'2-digit'});
-    lbl.textContent='Actualizado '+now;
-    document.getElementById('header-count').textContent=agrupados.length+' equipos unicos';
-    document.getElementById('loading-screen').style.display='none';
-    document.getElementById('app').style.display='';
-    renderDash(); renderFiltros();
-  };
-  script.src=API_URL+'?callback='+cbName+'&nocache='+Date.now();
-  script.onerror=function(){
-    clearTimeout(timeout); dot.className='sync-dot error'; lbl.textContent='Error al cargar';
-    document.getElementById('loading-screen').innerHTML='<p style="color:#E24B4A;font-size:14px">No se pudo cargar el Sheet.<br><br><button onclick="cargarDatos(true)" style="margin-top:8px;padding:6px 14px;font-size:13px;border:0.5px solid rgba(0,0,0,0.25);border-radius:8px;background:#fff;cursor:pointer">Reintentar</button></p>';
-    delete window[cbName];
-  };
-  document.head.appendChild(script);
+    var dot = document.getElementById('sync-dot'), lbl = document.getElementById('sync-label');
+    dot.className = 'sync-dot loading'; lbl.textContent = 'Cargando...';
+
+    fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+        // Mapeo directo según los campos de tu Sheet
+        agrupados = data.filter(r => r['HOSPITAL'] && !r['HOSPITAL'].includes('CANTIDAD')).map(r => ({
+            hospital: r['HOSPITAL'] || 'Sin Hospital',
+            equipo: r['EQUIPO'] || 'Sin Equipo',
+            tipo_equipo: r['TIPO'] || '—',
+            cantidad: parseInt(r['Q SOLICIT.']) || 0,
+            p_unit: parseFloat(r['P. UNIT']) || 0,
+            p_total: parseFloat(r['P. TOTAL']) || 0,
+            chequeado: r['CHEQUEADO CON SP'] || 'FALSE',
+            tipo_proyecto: r['TIPO PROYECTO'] || '—',
+            anio_entrega: r['AÑO ENTREGA'] || '—',
+            proyecto: r['NOMBRE PROYECTO'] || 'SIN PROYECTO',
+            estado: r['ESTADO'] || 'SIN AVANCE',
+            expediente: r['EXPEDIENTE'] || '—',
+            licitacion: r['LICITACION'] || 'PENDIENTE',
+            renglon: parseInt(r['RENGLON']) || 0,
+            fecha_apertura: r['FECHA DE APERTURA'] || '',
+            observacion: r['OBSERVACION'] || ''
+        }));
+
+        dot.className = 'sync-dot';
+        lbl.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+        
+        document.getElementById('loading-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        
+        generarOpcionesFiltros();
+        renderTabla();
+    })
+    .catch(err => {
+        dot.className = 'sync-dot error';
+        lbl.textContent = 'Error';
+        console.error(err);
+    });
 }
 
-function showTab(t){
-  var all=['dashboard','proyectos','equipos','distribucion'];
-  for(var i=0;i<all.length;i++) document.getElementById('tab-'+all[i]).style.display=all[i]===t?'':'none';
-  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.toggle('active',all[i]===t);});
-  if(t==='dashboard')    renderDash();
-  if(t==='proyectos')    renderProyectos();
-  if(t==='equipos')      renderTabla();
-  if(t==='distribucion') renderDistribucion();
+// --- MULTIFILTRO: GENERACIÓN Y LÓGICA ---
+function generarOpcionesFiltros(){
+    // Obtener valores únicos de los datos reales
+    let estados = [...new Set(agrupados.map(a => a.estado))].sort();
+    let proys = [...new Set(agrupados.map(a => a.proyecto))].sort();
+    let hosps = [...new Set(agrupados.map(a => a.hospital))].sort();
+    
+    llenarPanel('estado', estados);
+    llenarPanel('proy', proys);
+    llenarPanel('hosp', hosps);
 }
 
-function barChart(id,counts,colorFn){
-  var el=document.getElementById(id); if(!el) return;
-  var entries=Object.entries(counts).sort(function(a,b){return b[1]-a[1];});
-  var max=1; for(var i=0;i<entries.length;i++) if(entries[i][1]>max) max=entries[i][1];
-  var html='';
-  for(var i=0;i<entries.length;i++){
-    var k=entries[i][0],v=entries[i][1];
-    html+='<div class="bar-row"><div class="bar-label" title="'+k+'">'+(k||'\u2014')+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(v/max*100)+'%;background:'+colorFn(k)+'"></div></div><div class="bar-count">'+v+'</div></div>';
-  }
-  el.innerHTML=html;
+function llenarPanel(tipo, opciones){
+    let panel = document.getElementById('ms-panel-' + tipo);
+    if(!panel) return;
+    panel.innerHTML = opciones.map(opt => `
+        <div class="ms-item" onclick="event.stopPropagation()">
+            <input type="checkbox" value="${opt}" id="chk-${tipo}-${opt}" onchange="actualizarFiltro('${tipo}', this)">
+            <label for="chk-${tipo}-${opt}">${opt}</label>
+        </div>
+    `).join('');
 }
 
-function renderDash(){
-  var total=agrupados.length; if(!total) return;
-  var conAp=0,cheq=0,hospsSet={},totalUSD=0;
-  for(var i=0;i<agrupados.length;i++){var d=agrupados[i];if(d.fecha_apertura)conAp++;if(d.chequeado==='TRUE')cheq++;hospsSet[d.hospital]=1;totalUSD+=d.p_total;}
-  document.getElementById('metrics').innerHTML=
-    '<div class="metric"><div class="metric-label">Equipos unicos</div><div class="metric-value">'+total+'</div><div class="metric-sub">'+rawCount+' filas en Sheet</div></div>'+
-    '<div class="metric"><div class="metric-label">Hospitales</div><div class="metric-value">'+Object.keys(hospsSet).length+'</div></div>'+
-    '<div class="metric"><div class="metric-label">Monto total estimado</div><div class="metric-value" style="font-size:15px">'+fmtUSD(totalUSD)+'</div></div>'+
-    '<div class="metric"><div class="metric-label">Con fecha apertura</div><div class="metric-value">'+conAp+'</div><div class="metric-sub">'+Math.round(conAp/total*100)+'% del total</div></div>'+
-    '<div class="metric"><div class="metric-label">Chequeados con SP</div><div class="metric-value">'+cheq+'</div><div class="metric-sub">'+Math.round(cheq/total*100)+'% del total</div></div>';
-  var counts={};
-  for(var i=0;i<ESTADOS.length;i++) counts[ESTADOS[i].v]=0;
-  for(var i=0;i<agrupados.length;i++){var e=agrupados[i].estado;counts[e]=(counts[e]||0)+1;}
-  var genHTML='',legendHTML='',progHTML='';
-  for(var i=0;i<ESTADOS.length;i++){
-    var est=ESTADOS[i],c=counts[est.v]||0,pct=Math.round(c/total*100);
-    genHTML+='<div class="prog-seg" style="width:'+pct+'%;background:'+est.color+'" title="'+est.v+': '+c+' ('+pct+'%)"></div>';
-    legendHTML+='<div class="prog-legend-item"><div class="prog-dot" style="background:'+est.color+'"></div><span>'+est.v+' ('+c+')</span></div>';
-    progHTML+='<div class="prog-single"><div class="prog-header"><span class="prog-name">'+est.v+'</span><span class="prog-pct">'+c+' equipos &middot; '+pct+'%</span></div><div class="prog-track"><div class="prog-fill" style="width:'+pct+'%;background:'+est.color+'"></div></div></div>';
-  }
-  document.getElementById('prog-gen').innerHTML=genHTML;
-  document.getElementById('prog-legend').innerHTML=legendHTML;
-  document.getElementById('prog-estados').innerHTML=progHTML;
-  var hospC={};
-  for(var i=0;i<agrupados.length;i++){hospC[agrupados[i].hospital]=(hospC[agrupados[i].hospital]||0)+1;}
-  barChart('ch-hosp',Object.fromEntries(Object.entries(hospC).sort(function(a,b){return b[1]-a[1];}).slice(0,10)),function(){return '#7F77DD';});
-  var tipoC={};
-  for(var i=0;i<agrupados.length;i++){var t=agrupados[i].tipo_proyecto;if(t)tipoC[t]=(tipoC[t]||0)+1;}
-  barChart('ch-tipo',tipoC,function(k){return TIPO_COLOR[k]||'#888780';});
-  var hoy=new Date(); hoy.setHours(0,0,0,0);
-  var prox=[];
-  for(var i=0;i<agrupados.length;i++){if(agrupados[i].fecha_apertura){var diff=Math.ceil((new Date(agrupados[i].fecha_apertura+'T00:00:00')-hoy)/86400000);prox.push({d:agrupados[i],diff:diff});}}
-  prox.sort(function(a,b){return a.diff-b.diff;}); prox=prox.slice(0,10);
-  var apEl=document.getElementById('ch-apertura');
-  if(!prox.length){apEl.innerHTML='<div style="color:var(--t3);font-size:13px;padding:8px">Ningun equipo tiene fecha de apertura cargada.</div>';}
-  else{
-    var rows='';
-    for(var i=0;i<prox.length;i++){var d=prox[i].d;rows+='<tr><td style="font-weight:500">'+d.hospital+'</td><td>'+d.equipo+'</td><td style="color:var(--t2)">'+(d.nombre_proyecto||'\u2014')+'</td><td style="color:var(--t3)">'+(d.expediente||'\u2014')+'</td><td style="white-space:nowrap">'+fmtFecha(d.fecha_apertura)+'</td><td>'+badge(d.estado)+'</td><td>'+diasChip(d.fecha_apertura)+'</td></tr>';}
-    apEl.innerHTML='<table class="urg-table"><thead><tr><th>Hospital</th><th>Equipo</th><th>Proyecto</th><th>Expediente</th><th>Fecha</th><th>Estado</th><th>Dias</th></tr></thead><tbody>'+rows+'</tbody></table>';
-  }
-}
-
-function renderProyectos(){
-  var grupos={};
-  for(var i=0;i<agrupados.length;i++){var d=agrupados[i],k=d.nombre_proyecto||'(sin proyecto)';if(!grupos[k])grupos[k]=[];grupos[k].push(d);}
-  var sorted=Object.entries(grupos).sort(function(a,b){return b[1].length-a[1].length;});
-  var totalGral=0; for(var i=0;i<agrupados.length;i++) totalGral+=agrupados[i].p_total;
-  document.getElementById('proy-total').textContent='Total: '+fmtUSD(totalGral)+' \u00b7 '+sorted.length+' proyectos';
-  var html='';
-  for(var idx=0;idx<sorted.length;idx++){
-    var nombre=sorted[idx][0],items=sorted[idx][1];
-    var monto=0; for(var i=0;i<items.length;i++) monto+=items[i].p_total;
-    var hospsSet={}; for(var i=0;i<items.length;i++) hospsSet[items[i].hospital]=1;
-    var hosps=Object.keys(hospsSet).sort().join(', ');
-    var estados={}; for(var i=0;i<items.length;i++){var e=items[i].estado;estados[e]=(estados[e]||0)+1;}
-    var badgesHTML=''; for(var e in estados) badgesHTML+=badge(e)+' <span style="font-size:11px;color:var(--t3)">\u00d7'+estados[e]+'</span> ';
-    var rowsHTML='';
-    for(var i=0;i<items.length;i++){var d=items[i];rowsHTML+='<tr><td style="font-weight:500">'+d.hospital+'</td><td>'+d.equipo+'</td><td style="color:var(--t2)">'+(d.tipo||'\u2014')+'</td><td style="text-align:center;font-weight:500">'+(d.q_total||'\u2014')+'</td><td style="white-space:nowrap">'+fmtUSD(d.p_total)+'</td><td style="white-space:nowrap">'+fmtFecha(d.fecha_apertura)+'</td><td>'+diasChip(d.fecha_apertura)+'</td><td>'+badge(d.estado)+'</td></tr>';}
-    html+='<div class="proy-card"><div class="proy-header" onclick="toggleProy('+idx+')"><div style="flex:1"><div class="proy-name">'+nombre+'</div><div style="font-size:11px;color:var(--t3);margin-top:2px">'+hosps+'</div><div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;align-items:center">'+badgesHTML+'</div></div><div class="proy-meta"><span class="proy-count">'+items.length+' equipos</span><span class="proy-monto">'+fmtUSD(monto)+'</span><span class="proy-arrow" id="arrow-'+idx+'">\u25b6</span></div></div><div class="proy-body" id="proy-body-'+idx+'"><table class="proy-table"><thead><tr><th>Hospital</th><th>Equipo</th><th>Tipo</th><th>Q total</th><th>P. Total</th><th>Apertura</th><th>Dias</th><th>Estado</th></tr></thead><tbody>'+rowsHTML+'</tbody></table></div></div>';
-  }
-  document.getElementById('proy-container').innerHTML=html;
-}
-function toggleProy(idx){document.getElementById('proy-body-'+idx).classList.toggle('open');document.getElementById('arrow-'+idx).classList.toggle('open');}
-
-// ════════════════════════════════════════════
-//  MULTI-SELECT ENGINE
-// ════════════════════════════════════════════
-// Usamos objetos planos como sets para compatibilidad máxima
-var MS = {estado:{}, hosp:{}, tipo:{}, proy:{}, lic:{}, anio:{}};
-var MS_LABELS = {estado:'Estado', hosp:'Hospital', tipo:'Tipo proyecto', proy:'Proyecto', lic:'Licitación', anio:'Año entrega'};
-function msHas(k,v){return !!MS[k][v];}
-function msSize(k){return Object.keys(MS[k]).length;}
-function msAdd(k,v){MS[k][v]=true;}
-function msDel(k,v){delete MS[k][v];}
-function msClear(k){MS[k]={};}
-
-function buildMsPanel(key, values){
-  var panel=document.getElementById('ms-panel-'+key);
-  if(!values.length){panel.innerHTML='<div class="ms-empty">Sin opciones</div>';return;}
-  var html='<div class="ms-clear" onclick="clearMs(\''+key+'\')">Limpiar selección</div><div class="ms-sep"></div>';
-  for(var i=0;i<values.length;i++){
-    var v=values[i];
-    var esc=v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    var escJS=v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    var chk=msHas(key,v)?'checked':'';
-    html+='<div class="ms-item" onclick="toggleMsItem(\''+key+'\',\''+escJS+'\',this)">'
-        +'<input type="checkbox" '+chk+' onclick="event.stopPropagation();toggleMsItem(\''+key+'\',\''+escJS+'\',this.parentNode)">'
-        +'<label>'+esc+'</label></div>';
-  }
-  panel.innerHTML=html;
-}
-
-function toggleMsItem(key,v,itemEl){
-  if(msHas(key,v)){msDel(key,v);}else{msAdd(key,v);}
-  var cb=itemEl.querySelector('input[type=checkbox]');
-  if(cb) cb.checked=msHas(key,v);
-  updateMsBtn(key); renderChips(); renderTabla();
-}
-
-function clearMs(key){
-  msClear(key);
-  var panel=document.getElementById('ms-panel-'+key);
-  if(panel) panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
-  updateMsBtn(key); renderChips(); renderTabla();
-}
-
-function updateMsBtn(key){
-  var n=msSize(key);
-  document.getElementById('ms-cnt-'+key).style.display=n?'':'none';
-  document.getElementById('ms-cnt-'+key).textContent=n;
-  document.getElementById('ms-btn-'+key).classList.toggle('has-sel',n>0);
-}
-
-function renderChips(){
-  var chips=document.getElementById('active-chips'); if(!chips) return;
-  var html='';
-  var keys=['estado','hosp','tipo','proy','lic','anio'];
-  for(var ki=0;ki<keys.length;ki++){
-    var key=keys[ki], vals=Object.keys(MS[key]);
-    for(var vi=0;vi<vals.length;vi++){
-      var v=vals[vi];
-      var esc=v.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-      var escJS=v.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      html+='<span class="active-chip">'+MS_LABELS[key]+': '+esc+' <span class="chip-x" onclick="removeChip(\''+key+'\',\''+escJS+'\')">&times;</span></span>';
+function actualizarFiltro(tipo, cb){
+    if(cb.checked) filtrosActivos[tipo].push(cb.value);
+    else filtrosActivos[tipo] = filtrosActivos[tipo].filter(v => v !== cb.value);
+    
+    // Actualizar contador visual
+    let cnt = document.getElementById('ms-cnt-' + tipo);
+    if(cnt) {
+        cnt.textContent = filtrosActivos[tipo].length;
+        cnt.style.display = filtrosActivos[tipo].length > 0 ? 'inline-block' : 'none';
     }
-  }
-  chips.innerHTML=html;
-}
-
-function removeChip(key,v){
-  msDel(key,v);
-  var panel=document.getElementById('ms-panel-'+key);
-  if(panel) panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){
-    var lbl=cb.parentNode.querySelector('label');
-    if(lbl&&lbl.textContent===v) cb.checked=false;
-  });
-  updateMsBtn(key); renderChips(); renderTabla();
+    renderTabla();
 }
 
 function limpiarFiltros(){
-  var keys=['estado','hosp','tipo','proy','lic','anio'];
-  for(var i=0;i<keys.length;i++){
-    msClear(keys[i]);
-    var panel=document.getElementById('ms-panel-'+keys[i]);
-    if(panel) panel.querySelectorAll('input[type=checkbox]').forEach(function(cb){cb.checked=false;});
-    updateMsBtn(keys[i]);
-  }
-  document.getElementById('search').value='';
-  renderChips(); renderTabla();
+    filtrosActivos = { estado: [], proy: [], hosp: [] };
+    document.querySelectorAll('.ms-panel input').forEach(i => i.checked = false);
+    document.querySelectorAll('.ms-count').forEach(c => { c.textContent = '0'; c.style.display = 'none'; });
+    document.getElementById('search').value = '';
+    renderTabla();
 }
 
-function toggleMs(key,e){
-  e.stopPropagation();
-  var panel=document.getElementById('ms-panel-'+key);
-  var isOpen=panel.classList.contains('open');
-  document.querySelectorAll('.ms-panel').forEach(function(p){p.classList.remove('open');});
-  if(!isOpen) panel.classList.add('open');
-}
-document.addEventListener('click',function(){
-  document.querySelectorAll('.ms-panel').forEach(function(p){p.classList.remove('open');});
-});
-
-// ════════════════════════════════════════════
-//  EQUIPOS
-// ════════════════════════════════════════════
-function renderFiltros(){
-  var sEstado=[],sHosp=[],sTipo=[],sProy=[],sLic=[],sAnio=[];
-  for(var i=0;i<agrupados.length;i++){
-    var d=agrupados[i];
-    if(d.estado         && sEstado.indexOf(d.estado)<0)          sEstado.push(d.estado);
-    if(d.hospital       && sHosp.indexOf(d.hospital)<0)          sHosp.push(d.hospital);
-    if(d.tipo_proyecto  && sTipo.indexOf(d.tipo_proyecto)<0)     sTipo.push(d.tipo_proyecto);
-    if(d.nombre_proyecto&& sProy.indexOf(d.nombre_proyecto)<0)   sProy.push(d.nombre_proyecto);
-    if(d.licitacion     && sLic.indexOf(d.licitacion)<0)         sLic.push(d.licitacion);
-    if(d.anio_entrega   && sAnio.indexOf(d.anio_entrega)<0)      sAnio.push(d.anio_entrega);
-  }
-  // Estados en orden de avance definido
-  var estadoOrdenado=[];
-  for(var i=0;i<ESTADOS.length;i++){if(sEstado.indexOf(ESTADOS[i].v)>=0) estadoOrdenado.push(ESTADOS[i].v);}
-  buildMsPanel('estado',estadoOrdenado);
-  buildMsPanel('hosp',sHosp.sort());
-  buildMsPanel('tipo',sTipo.sort());
-  buildMsPanel('proy',sProy.sort());
-  buildMsPanel('lic',sLic.sort());
-  buildMsPanel('anio',sAnio.sort());
-}
+// --- RENDERIZADO DE SECCIONES ---
 
 function renderTabla(){
-  var q=(document.getElementById('search').value||'').toLowerCase();
-  var filtered=[];
-  for(var i=0;i<agrupados.length;i++){
-    var d=agrupados[i];
-    if(msSize('estado')&&!msHas('estado',d.estado))         continue;
-    if(msSize('hosp')  &&!msHas('hosp',d.hospital))         continue;
-    if(msSize('tipo')  &&!msHas('tipo',d.tipo_proyecto))    continue;
-    if(msSize('proy')  &&!msHas('proy',d.nombre_proyecto))  continue;
-    if(msSize('lic')   &&!msHas('lic',d.licitacion))        continue;
-    if(msSize('anio')  &&!msHas('anio',d.anio_entrega))     continue;
-    if(q){var txt=(d.hospital+d.equipo+d.tipo+d.nombre_proyecto+d.expediente+d.licitacion).toLowerCase();if(txt.indexOf(q)===-1) continue;}
-    filtered.push(d);
-  }
-  var totalF=0,totalG=0;
-  for(var i=0;i<filtered.length;i++) totalF+=filtered[i].p_total;
-  for(var i=0;i<agrupados.length;i++) totalG+=agrupados[i].p_total;
-  document.getElementById('total-bar').innerHTML='<span class="total-label">Total visible:</span><span class="total-value">'+fmtUSD(totalF)+'</span><span class="total-sub">de '+fmtUSD(totalG)+' total &middot; '+filtered.length+' de '+agrupados.length+' equipos</span>';
-  var tbody=document.getElementById('tbody'),empty=document.getElementById('empty');
-  if(!filtered.length){tbody.innerHTML='';empty.style.display='';return;}
-  empty.style.display='none';
-  var rows='';
-  for(var i=0;i<filtered.length;i++){
-    var d=filtered[i];
-    rows+='<tr>'
-      +'<td style="font-weight:500">'+d.hospital+'</td>'
-      +'<td>'+d.equipo+'</td>'
-      +'<td style="color:var(--t2)">'+(d.tipo||'\u2014')+'</td>'
-      +'<td style="text-align:center;font-weight:500">'+(d.q_total||'\u2014')+'</td>'
-      +'<td style="white-space:nowrap">'+(d.p_unit||'\u2014')+'</td>'
-      +'<td style="white-space:nowrap">'+fmtUSD(d.p_total)+'</td>'
-      +'<td style="color:var(--t2);max-width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+(d.nombre_proyecto||'')+'">'+(d.nombre_proyecto||'\u2014')+'</td>'
-      +'<td>'+(d.tipo_proyecto||'\u2014')+'</td>'
-      +'<td style="color:var(--t3);text-align:center">'+(d.anio_entrega||'\u2014')+'</td>'
-      +'<td style="color:var(--t3)">'+(d.expediente||'\u2014')+'</td>'
-      +'<td style="color:var(--t3)">'+(d.licitacion||'\u2014')+'</td>'
-      +'<td style="white-space:nowrap">'+fmtFecha(d.fecha_apertura)+' '+diasChip(d.fecha_apertura)+'</td>'
-      +'<td>'+badge(d.estado)+'</td>'
-      +'<td><span class="tag-cheq '+(d.chequeado==='TRUE'?'tag-si':'tag-no')+'">'+(d.chequeado==='TRUE'?'Si':'No')+'</span></td>'
-      +'</tr>';
-  }
-  tbody.innerHTML=rows;
-  document.getElementById('tfoot').textContent='Mostrando '+filtered.length+' de '+agrupados.length+' equipos unicos';
+    let search = document.getElementById('search').value.toLowerCase();
+    let filtrados = agrupados.filter(a => {
+        let matchSearch = a.equipo.toLowerCase().includes(search) || a.hospital.toLowerCase().includes(search);
+        let matchEstado = filtrosActivos.estado.length === 0 || filtrosActivos.estado.includes(a.estado);
+        let matchProy = filtrosActivos.proy.length === 0 || filtrosActivos.proy.includes(a.proyecto);
+        let matchHosp = filtrosActivos.hosp.length === 0 || filtrosActivos.hosp.includes(a.hospital);
+        return matchSearch && matchEstado && matchProy && matchHosp;
+    });
+
+    document.getElementById('tbody').innerHTML = filtrados.map(a => `
+        <tr>
+            <td>${a.hospital}</td>
+            <td>${a.equipo}</td>
+            <td>${a.tipo_equipo}</td>
+            <td style="text-align:center">${a.cantidad}</td>
+            <td>${fmtUSD(a.p_unit)}</td>
+            <td>${fmtUSD(a.p_total)}</td>
+            <td>${a.proyecto}</td>
+            <td>${a.tipo_proyecto}</td>
+            <td>${a.anio_entrega}</td>
+            <td>${a.expediente}</td>
+            <td>${a.licitacion}</td>
+            <td>${a.fecha_apertura}</td>
+            <td><span class="badge bs0">${a.estado}</span></td>
+            <td><span class="tag-cheq ${a.chequeado === 'TRUE' ? 'tag-si' : 'tag-no'}">${a.chequeado === 'TRUE' ? 'SI' : 'NO'}</span></td>
+        </tr>
+    `).join('');
 }
 
-// ════════════════════════════════════════════
-//  DISTRIBUCIÓN DE EQUIPOS
-// ════════════════════════════════════════════
+function renderProyectos(){
+    let searchInput = document.getElementById('proy-search-input');
+    let query = searchInput ? searchInput.value.toLowerCase() : '';
+    
+    // Agrupar por nombre de proyecto
+    let proyectosSet = [...new Set(agrupados.map(a => a.proyecto))];
+    let proysFiltrados = proyectosSet.filter(p => p.toLowerCase().includes(query)).sort();
+    
+    document.getElementById('proy-container').innerHTML = proysFiltrados.map((p, idx) => {
+        let items = agrupados.filter(a => a.proyecto === p);
+        let totalUSD = items.reduce((sum, cur) => sum + cur.p_total, 0);
+        
+        return `
+            <div class="proy-card">
+                <div class="proy-header" onclick="toggleDiv('proy-body-${idx}', 'arrow-p-${idx}')">
+                    <div style="flex:1">
+                        <div class="proy-name">${p}</div>
+                        <div style="font-size:11px; color:var(--t3)">${items.length} equipos registrados</div>
+                    </div>
+                    <div class="proy-meta">
+                        <span class="proy-monto">${fmtUSD(totalUSD)}</span>
+                        <span class="proy-arrow" id="arrow-p-${idx}">▶</span>
+                    </div>
+                </div>
+                <div class="proy-body" id="proy-body-${idx}">
+                    <table class="proy-table">
+                        <thead><tr><th>Hospital</th><th>Equipo</th><th>Cantidad</th><th>Estado</th></tr></thead>
+                        <tbody>
+                            ${items.map(i => `<tr><td>${i.hospital}</td><td>${i.equipo}</td><td>${i.cantidad}</td><td>${i.estado}</td></tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
 function renderDistribucion(){
-  var q=(document.getElementById('dist-search').value||'').toLowerCase();
-  var grupos={};
-  for(var i=0;i<agrupados.length;i++){
-    var d=agrupados[i];
-    var key=(d.equipo||'').trim().toUpperCase();
-    if(!key) continue;
-    if(!grupos[key]) grupos[key]={nombre:d.equipo,items:[]};
-    grupos[key].items.push(d);
-  }
-  var lista=[];
-  for(var k in grupos){
-    if(q&&grupos[k].nombre.toLowerCase().indexOf(q)===-1) continue;
-    lista.push(grupos[k]);
-  }
-  lista.sort(function(a,b){
-    var qa=0,qb=0;
-    for(var i=0;i<a.items.length;i++) qa+=a.items[i].q_total;
-    for(var i=0;i<b.items.length;i++) qb+=b.items[i].q_total;
-    return qb-qa;
-  });
-  var totalTipos=lista.length,totalUds=0;
-  for(var i=0;i<lista.length;i++) for(var j=0;j<lista[i].items.length;j++) totalUds+=lista[i].items[j].q_total;
-  document.getElementById('dist-total').textContent=totalTipos+' tipos de equipo \u00b7 '+totalUds+' unidades totales';
-  if(!lista.length){document.getElementById('dist-container').innerHTML='<div class="empty">Sin resultados.</div>';return;}
-  var html='';
-  for(var idx=0;idx<lista.length;idx++){
-    var g=lista[idx],items=g.items;
-    var qtotal=0,mtotal=0;
-    for(var i=0;i<items.length;i++){qtotal+=items[i].q_total;mtotal+=items[i].p_total;}
-    // Consolidar por hospital
-    var porHosp={};
-    for(var i=0;i<items.length;i++){
-      var d=items[i],hk=d.hospital;
-      if(!porHosp[hk]) porHosp[hk]={hospital:d.hospital,q:0,monto:0,estado:d.estado,estadoOrd:d.estado_orden,proyecto:d.nombre_proyecto,licitacion:d.licitacion};
-      porHosp[hk].q+=d.q_total; porHosp[hk].monto+=d.p_total;
-      if(d.estado_orden>porHosp[hk].estadoOrd){porHosp[hk].estado=d.estado;porHosp[hk].estadoOrd=d.estado_orden;}
-    }
-    var filas=[]; for(var hk in porHosp) filas.push(porHosp[hk]);
-    filas.sort(function(a,b){return b.q-a.q;});
-    var rowsHTML='';
-    for(var i=0;i<filas.length;i++){
-      var f=filas[i];
-      rowsHTML+='<tr>'
-        +'<td style="font-weight:500">'+f.hospital+'</td>'
-        +'<td class="dist-qty-cell">'+f.q+'</td>'
-        +'<td style="white-space:nowrap">'+fmtUSD(f.monto)+'</td>'
-        +'<td>'+badge(f.estado)+'</td>'
-        +'<td style="color:var(--t2);max-width:160px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="'+(f.proyecto||'')+'">'+( f.proyecto||'\u2014')+'</td>'
-        +'<td style="color:var(--t3)">'+(f.licitacion||'\u2014')+'</td>'
-        +'</tr>';
-    }
-    html+='<div class="dist-card">'
-      +'<div class="dist-header" onclick="toggleDist('+idx+')">'
-        +'<div class="dist-name">'+g.nombre+'</div>'
-        +'<div class="dist-meta">'
-          +'<span class="dist-hosps">'+filas.length+' hospital'+(filas.length!==1?'es':'')+'</span>'
-          +'<span class="dist-qty">'+qtotal+' ud.</span>'
-          +'<span class="dist-monto">'+fmtUSD(mtotal)+'</span>'
-          +'<span class="proy-arrow" id="dist-arrow-'+idx+'">\u25b6</span>'
-        +'</div>'
-      +'</div>'
-      +'<div class="dist-body" id="dist-body-'+idx+'">'
-        +'<table class="dist-table"><thead><tr><th>Hospital</th><th>Cantidad</th><th>Monto</th><th>Estado</th><th>Proyecto</th><th>Licitación</th></tr></thead>'
-        +'<tbody>'+rowsHTML+'</tbody></table>'
-      +'</div></div>';
-  }
-  document.getElementById('dist-container').innerHTML=html;
-}
-function toggleDist(idx){document.getElementById('dist-body-'+idx).classList.toggle('open');document.getElementById('dist-arrow-'+idx).classList.toggle('open');}
+    // Agrupar por Licitación
+    let licitaciones = [...new Set(agrupados.map(a => a.licitacion))].sort();
+    
+    document.getElementById('dist-container').innerHTML = licitaciones.map((lic, idx) => {
+        let items = agrupados.filter(a => a.licitacion === lic);
+        
+        // ORDENAR: Renglón (Menor a Mayor), luego Equipo, Tipo y Cantidad
+        items.sort((a, b) => a.renglon - b.renglon || a.equipo.localeCompare(b.equipo));
+        
+        let montoTotal = items.reduce((sum, cur) => sum + cur.p_total, 0);
 
-cargarDatos(false);
+        return `
+            <div class="dist-card">
+                <div class="dist-header" onclick="toggleDiv('dist-body-${idx}', 'arrow-d-${idx}')">
+                    <div style="flex:1">
+                        <div class="dist-name">Licitación: <b>${lic}</b></div>
+                        <div style="font-size:12px; color:var(--t3)">Monto Total Licitado: ${fmtUSD(montoTotal)}</div>
+                    </div>
+                    <div class="dist-meta">
+                        <span class="dist-hosps">${items.length} renglones</span>
+                        <span class="dist-arrow" id="arrow-d-${idx}">▶</span>
+                    </div>
+                </div>
+                <div class="dist-body" id="dist-body-${idx}">
+                    <table class="dist-table">
+                        <thead>
+                            <tr>
+                                <th>Renglón</th>
+                                <th>Hospital</th>
+                                <th>Equipo</th>
+                                <th>Tipo Equipo</th>
+                                <th>Cantidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${items.map(i => `
+                                <tr>
+                                    <td style="font-weight:bold; color:var(--accent)">#${i.renglon}</td>
+                                    <td>${i.hospital}</td>
+                                    <td>${i.equipo}</td>
+                                    <td>${i.tipo_equipo}</td>
+                                    <td style="text-align:center"><b>${i.cantidad}</b></td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+// Auxiliares de UI
+function toggleDiv(bodyId, arrowId){
+    document.getElementById(bodyId).classList.toggle('open');
+    document.getElementById(arrowId).classList.toggle('open');
+}
+
+function showTab(t){
+    const tabs = ['dashboard', 'proyectos', 'equipos', 'distribucion'];
+    tabs.forEach(tab => {
+        document.getElementById('tab-' + tab).style.display = (tab === t) ? 'block' : 'none';
+    });
+    // Activar funciones de renderizado según la pestaña
+    if(t === 'proyectos') renderProyectos();
+    if(t === 'distribucion') renderDistribucion();
+    if(t === 'equipos') renderTabla();
+}
+
+// Inicio automático
+cargarDatos();
 </script>
-</body>
-</html>
