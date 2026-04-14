@@ -1,164 +1,259 @@
-<script>
-// URL de tu API
-var API_URL = 'https://script.google.com/macros/s/AKfycbzD-hJkihX-7wLb4DqUfGCYtIYRWEc2VdziaJ5h0EbMnZhCZAaKx67aoCCLY-Os7jD3/exec';
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adquisiciones 2026 - Gestión Estratégica</title>
+<style>
+/* --- ESTILOS BASE Y VARIABLES --- */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,-apple-system,sans-serif;background:#f5f5f3;color:#1a1a1a;min-height:100vh}
+:root{--bg1:#ffffff;--bg2:#f1efe8;--t1:#1a1a1a;--t2:#5f5e5a;--t3:#888780;--b1:rgba(0,0,0,0.12);--b2:rgba(0,0,0,0.25);--r1:8px;--r2:12px;--accent:#3B5BDB}
 
-var agrupados = [];
-var filtrosActivos = { estado: [], proy: [], hosp: [] };
-
-// Formateo de moneda
-function fmtUSD(n){ 
-    return (n && !isNaN(n)) ? 'USD ' + n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '—'; 
+@media(prefers-color-scheme:dark){
+    :root{--bg1:#1e1e1c;--bg2:#2a2a28;--t1:#f0ede6;--t2:#b4b2a9;--t3:#888780;--b1:rgba(255,255,255,0.12);--b2:rgba(255,255,255,0.25);--accent:#748FFC}
+    body{background:#141412;color:#f0ede6}
 }
 
-function cargarDatos(manual){
-    var dot = document.getElementById('sync-dot'), lbl = document.getElementById('sync-label');
-    dot.className = 'sync-dot loading'; lbl.textContent = 'Cargando...';
+/* --- HEADER Y NAVEGACION --- */
+header{background:var(--bg1);border-bottom:0.5px solid var(--b1);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sync-btn{padding:6px 14px;font-size:12px;border:0.5px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:8px}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#639922}
+.sync-dot.loading{background:#EF9F27;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
-    fetch(API_URL)
-    .then(res => res.json())
-    .then(data => {
-        // Mapeo directo según los campos de tu Sheet
+.container{max-width:1400px;margin:0 auto;padding:1.5rem}
+.tabs{display:flex;gap:8px;margin-bottom:1.5rem;border-bottom:0.5px solid var(--b1)}
+.tab{padding:10px 20px;font-size:13px;cursor:pointer;border:none;background:none;color:var(--t2);border-bottom:2px solid transparent}
+.tab.active{color:var(--accent);border-bottom:2px solid var(--accent);font-weight:600}
+
+/* --- FILTROS (REDISEÑADOS PARA LECTURA) --- */
+.filters{display:flex;gap:10px;margin-bottom:15px;flex-wrap:wrap;align-items:center}
+.filters input[type="text"]{padding:8px 12px;border:1px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t1);min-width:250px}
+
+.ms-wrap{position:relative}
+.ms-btn{padding:8px 12px;font-size:13px;border:1px solid var(--b2);border-radius:var(--r1);background:var(--bg1);color:var(--t2);cursor:pointer;display:flex;align-items:center;gap:6px}
+.ms-panel{display:none;position:absolute;top:110%;left:0;background:var(--bg1);border:1px solid var(--b2);border-radius:var(--r1);box-shadow:0 8px 24px rgba(0,0,0,0.2);z-index:999;min-width:240px;max-height:350px;overflow-y:auto;padding:8px 0}
+.ms-panel.open{display:block}
+.ms-item{padding:8px 15px;display:flex;align-items:center;gap:10px;font-size:13px;cursor:pointer}
+.ms-item:hover{background:var(--bg2)}
+.ms-count{background:var(--accent);color:white;border-radius:10px;padding:1px 6px;font-size:10px;display:none}
+
+/* --- TABLAS Y CARDS --- */
+.table-wrap{overflow-x:auto;background:var(--bg1);border-radius:var(--r2);border:0.5px solid var(--b1)}
+table.main, .dist-table, .proy-table{width:100%;border-collapse:collapse;font-size:13px}
+table th{text-align:left;padding:12px;background:var(--bg2);color:var(--t2);font-weight:500;position:sticky;top:0}
+table td{padding:10px 12px;border-bottom:0.5px solid var(--b1)}
+
+.proy-card, .dist-card{background:var(--bg1);border:1px solid var(--b1);border-radius:var(--r2);margin-bottom:12px;overflow:hidden}
+.proy-header, .dist-header{padding:1rem;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+.proy-header:hover, .dist-header:hover{background:var(--bg2)}
+.proy-body, .dist-body{display:none;border-top:1px solid var(--b1)}
+.proy-body.open, .dist-body.open{display:block}
+.arrow{transition:transform 0.3s; color:var(--t3)}
+.arrow.open{transform:rotate(90deg)}
+
+/* --- BADGES --- */
+.badge{padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase}
+.bs0{background:#F1EFE8;color:#444441}
+.bs3{background:#EAF3DE;color:#27500A}
+.tag-si{background:#EAF3DE;color:#27500A;padding:2px 8px;border-radius:4px;font-size:10px}
+.tag-no{background:#F1EFE8;color:#5F5E5A;padding:2px 8px;border-radius:4px;font-size:10px}
+
+</style>
+</head>
+<body>
+
+<header>
+    <div style="display:flex; align-items:baseline; gap:12px">
+        <h1 style="font-size:18px">Adquisiciones 2026</h1>
+        <span id="header-count" style="font-size:12px; color:var(--t3)">Cargando...</span>
+    </div>
+    <button class="sync-btn" onclick="cargarDatos()">
+        <div class="sync-dot" id="sync-dot"></div>
+        <span id="sync-label">Actualizar Datos</span>
+    </button>
+</header>
+
+<div class="container">
+    <div id="loading-screen" style="text-align:center; padding:100px; color:var(--t3)">
+        <p>Sincronizando con Google Sheets...</p>
+    </div>
+
+    <div id="app" style="display:none">
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('equipos', this)">Equipos</button>
+            <button class="tab" onclick="showTab('proyectos', this)">Por Proyecto</button>
+            <button class="tab" onclick="showTab('distribucion', this)">Distribución</button>
+        </div>
+
+        <div id="tab-equipos">
+            <div class="filters">
+                <input type="text" id="search" placeholder="Buscar equipo o hospital..." oninput="renderTabla()">
+                
+                <div class="ms-wrap">
+                    <button class="ms-btn" onclick="toggleMs('hosp', event)">Hospital <span class="ms-count" id="ms-cnt-hosp">0</span></button>
+                    <div class="ms-panel" id="ms-panel-hosp"></div>
+                </div>
+
+                <div class="ms-wrap">
+                    <button class="ms-btn" onclick="toggleMs('proy', event)">Proyecto <span class="ms-count" id="ms-cnt-proy">0</span></button>
+                    <div class="ms-panel" id="ms-panel-proy"></div>
+                </div>
+
+                <div class="ms-wrap">
+                    <button class="ms-btn" onclick="toggleMs('estado', event)">Estado <span class="ms-count" id="ms-cnt-estado">0</span></button>
+                    <div class="ms-panel" id="ms-panel-estado"></div>
+                </div>
+
+                <button class="sync-btn" onclick="limpiarFiltros()">Limpiar Filtros</button>
+            </div>
+
+            <div class="table-wrap">
+                <table class="main">
+                    <thead>
+                        <tr>
+                            <th>Hospital</th><th>Equipo</th><th>Tipo</th><th>Cant.</th><th>Total</th><th>Proyecto</th><th>Licitación</th><th>Estado</th><th>SP</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tbody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="tab-proyectos" style="display:none">
+            <div class="filters">
+                <input type="text" id="proy-search" placeholder="Filtrar por nombre de proyecto..." oninput="renderProyectos()">
+            </div>
+            <div id="proy-container"></div>
+        </div>
+
+        <div id="tab-distribucion" style="display:none">
+            <div id="dist-container"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+// CONFIGURACIÓN DE COLUMNAS SEGÚN TU LISTA
+var API_URL = 'https://script.google.com/macros/s/AKfycbzD-hJkihX-7wLb4DqUfGCYtIYRWEc2VdziaJ5h0EbMnZhCZAaKx67aoCCLY-Os7jD3/exec';
+var agrupados = [];
+var filtros = { estado: [], proy: [], hosp: [] };
+
+function fmtUSD(n){ return n ? 'USD ' + n.toLocaleString('en-US', {minimumFractionDigits:2}) : '—'; }
+
+async function cargarDatos() {
+    const dot = document.getElementById('sync-dot');
+    dot.className = 'sync-dot loading';
+    
+    try {
+        const response = await fetch(API_URL);
+        const data = await response.json();
+        
+        // MAPEADO DE TUS COLUMNAS ESPECÍFICAS
         agrupados = data.filter(r => r['HOSPITAL'] && !r['HOSPITAL'].includes('CANTIDAD')).map(r => ({
-            hospital: r['HOSPITAL'] || 'Sin Hospital',
-            equipo: r['EQUIPO'] || 'Sin Equipo',
-            tipo_equipo: r['TIPO'] || '—',
+            hospital: r['HOSPITAL'],
+            equipo: r['EQUIPO'],
+            tipo: r['TIPO'] || '—',
             cantidad: parseInt(r['Q SOLICIT.']) || 0,
-            p_unit: parseFloat(r['P. UNIT']) || 0,
             p_total: parseFloat(r['P. TOTAL']) || 0,
-            chequeado: r['CHEQUEADO CON SP'] || 'FALSE',
-            tipo_proyecto: r['TIPO PROYECTO'] || '—',
-            anio_entrega: r['AÑO ENTREGA'] || '—',
             proyecto: r['NOMBRE PROYECTO'] || 'SIN PROYECTO',
-            estado: r['ESTADO'] || 'SIN AVANCE',
-            expediente: r['EXPEDIENTE'] || '—',
             licitacion: r['LICITACION'] || 'PENDIENTE',
-            renglon: parseInt(r['RENGLON']) || 0,
-            fecha_apertura: r['FECHA DE APERTURA'] || '',
-            observacion: r['OBSERVACION'] || ''
+            estado: r['ESTADO'] || 'SIN AVANCE',
+            renglon: parseInt(r['RENGLON']) || 999,
+            chequeado: r['CHEQUEADO CON SP'] === 'TRUE'
         }));
 
-        dot.className = 'sync-dot';
-        lbl.textContent = 'Actualizado ' + new Date().toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
-        
         document.getElementById('loading-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        document.getElementById('header-count').textContent = agrupados.length + ' registros encontrados';
         
-        generarOpcionesFiltros();
+        generarSelectores();
         renderTabla();
-    })
-    .catch(err => {
-        dot.className = 'sync-dot error';
-        lbl.textContent = 'Error';
-        console.error(err);
-    });
-}
-
-// --- MULTIFILTRO: GENERACIÓN Y LÓGICA ---
-function generarOpcionesFiltros(){
-    // Obtener valores únicos de los datos reales
-    let estados = [...new Set(agrupados.map(a => a.estado))].sort();
-    let proys = [...new Set(agrupados.map(a => a.proyecto))].sort();
-    let hosps = [...new Set(agrupados.map(a => a.hospital))].sort();
-    
-    llenarPanel('estado', estados);
-    llenarPanel('proy', proys);
-    llenarPanel('hosp', hosps);
-}
-
-function llenarPanel(tipo, opciones){
-    let panel = document.getElementById('ms-panel-' + tipo);
-    if(!panel) return;
-    panel.innerHTML = opciones.map(opt => `
-        <div class="ms-item" onclick="event.stopPropagation()">
-            <input type="checkbox" value="${opt}" id="chk-${tipo}-${opt}" onchange="actualizarFiltro('${tipo}', this)">
-            <label for="chk-${tipo}-${opt}">${opt}</label>
-        </div>
-    `).join('');
-}
-
-function actualizarFiltro(tipo, cb){
-    if(cb.checked) filtrosActivos[tipo].push(cb.value);
-    else filtrosActivos[tipo] = filtrosActivos[tipo].filter(v => v !== cb.value);
-    
-    // Actualizar contador visual
-    let cnt = document.getElementById('ms-cnt-' + tipo);
-    if(cnt) {
-        cnt.textContent = filtrosActivos[tipo].length;
-        cnt.style.display = filtrosActivos[tipo].length > 0 ? 'inline-block' : 'none';
+        dot.className = 'sync-dot';
+    } catch (e) {
+        alert("Error al conectar con los datos.");
     }
+}
+
+function generarSelectores() {
+    const sets = {
+        estado: [...new Set(agrupados.map(a => a.estado))].sort(),
+        proy: [...new Set(agrupados.map(a => a.proyecto))].sort(),
+        hosp: [...new Set(agrupados.map(a => a.hospital))].sort()
+    };
+    
+    for (let key in sets) {
+        const panel = document.getElementById('ms-panel-' + key);
+        panel.innerHTML = sets[key].map(opt => `
+            <div class="ms-item" onclick="event.stopPropagation()">
+                <input type="checkbox" value="${opt}" onchange="updateFiltro('${key}', this)">
+                <label>${opt}</label>
+            </div>
+        `).join('');
+    }
+}
+
+function updateFiltro(tipo, cb) {
+    if(cb.checked) filtros[tipo].push(cb.value);
+    else filtros[tipo] = filtros[tipo].filter(v => v !== cb.value);
+    
+    const count = document.getElementById('ms-cnt-' + tipo);
+    count.textContent = filtros[tipo].length;
+    count.style.display = filtros[tipo].length > 0 ? 'inline-block' : 'none';
     renderTabla();
 }
 
-function limpiarFiltros(){
-    filtrosActivos = { estado: [], proy: [], hosp: [] };
-    document.querySelectorAll('.ms-panel input').forEach(i => i.checked = false);
-    document.querySelectorAll('.ms-count').forEach(c => { c.textContent = '0'; c.style.display = 'none'; });
-    document.getElementById('search').value = '';
-    renderTabla();
+function toggleMs(tipo, e) {
+    e.stopPropagation();
+    document.querySelectorAll('.ms-panel').forEach(p => p.classList.remove('open'));
+    document.getElementById('ms-panel-' + tipo).classList.add('open');
 }
 
-// --- RENDERIZADO DE SECCIONES ---
+window.onclick = () => document.querySelectorAll('.ms-panel').forEach(p => p.classList.remove('open'));
 
-function renderTabla(){
-    let search = document.getElementById('search').value.toLowerCase();
-    let filtrados = agrupados.filter(a => {
-        let matchSearch = a.equipo.toLowerCase().includes(search) || a.hospital.toLowerCase().includes(search);
-        let matchEstado = filtrosActivos.estado.length === 0 || filtrosActivos.estado.includes(a.estado);
-        let matchProy = filtrosActivos.proy.length === 0 || filtrosActivos.proy.includes(a.proyecto);
-        let matchHosp = filtrosActivos.hosp.length === 0 || filtrosActivos.hosp.includes(a.hospital);
-        return matchSearch && matchEstado && matchProy && matchHosp;
+function renderTabla() {
+    const query = document.getElementById('search').value.toLowerCase();
+    const filtered = agrupados.filter(a => {
+        const mSearch = a.equipo.toLowerCase().includes(query) || a.hospital.toLowerCase().includes(query);
+        const mEstado = filtros.estado.length === 0 || filtros.estado.includes(a.estado);
+        const mProy = filtros.proy.length === 0 || filtros.proy.includes(a.proyecto);
+        const mHosp = filtros.hosp.length === 0 || filtros.hosp.includes(a.hospital);
+        return mSearch && mEstado && mProy && mHosp;
     });
 
-    document.getElementById('tbody').innerHTML = filtrados.map(a => `
+    document.getElementById('tbody').innerHTML = filtered.map(a => `
         <tr>
-            <td>${a.hospital}</td>
+            <td><b>${a.hospital}</b></td>
             <td>${a.equipo}</td>
-            <td>${a.tipo_equipo}</td>
-            <td style="text-align:center">${a.cantidad}</td>
-            <td>${fmtUSD(a.p_unit)}</td>
+            <td style="color:var(--t3)">${a.tipo}</td>
+            <td>${a.cantidad}</td>
             <td>${fmtUSD(a.p_total)}</td>
             <td>${a.proyecto}</td>
-            <td>${a.tipo_proyecto}</td>
-            <td>${a.anio_entrega}</td>
-            <td>${a.expediente}</td>
             <td>${a.licitacion}</td>
-            <td>${a.fecha_apertura}</td>
-            <td><span class="badge bs0">${a.estado}</span></td>
-            <td><span class="tag-cheq ${a.chequeado === 'TRUE' ? 'tag-si' : 'tag-no'}">${a.chequeado === 'TRUE' ? 'SI' : 'NO'}</span></td>
+            <td><span class="badge ${a.estado === 'ADJUDICADO' ? 'bs3' : 'bs0'}">${a.estado}</span></td>
+            <td><span class="${a.chequeado ? 'tag-si' : 'tag-no'}">${a.chequeado ? 'SI' : 'NO'}</span></td>
         </tr>
     `).join('');
 }
 
-function renderProyectos(){
-    let searchInput = document.getElementById('proy-search-input');
-    let query = searchInput ? searchInput.value.toLowerCase() : '';
+function renderProyectos() {
+    const q = document.getElementById('proy-search').value.toLowerCase();
+    const proys = [...new Set(agrupados.map(a => a.proyecto))].filter(p => p.toLowerCase().includes(q)).sort();
     
-    // Agrupar por nombre de proyecto
-    let proyectosSet = [...new Set(agrupados.map(a => a.proyecto))];
-    let proysFiltrados = proyectosSet.filter(p => p.toLowerCase().includes(query)).sort();
-    
-    document.getElementById('proy-container').innerHTML = proysFiltrados.map((p, idx) => {
-        let items = agrupados.filter(a => a.proyecto === p);
-        let totalUSD = items.reduce((sum, cur) => sum + cur.p_total, 0);
-        
+    document.getElementById('proy-container').innerHTML = proys.map((p, i) => {
+        const items = agrupados.filter(a => a.proyecto === p);
+        const total = items.reduce((s, c) => s + c.p_total, 0);
         return `
             <div class="proy-card">
-                <div class="proy-header" onclick="toggleDiv('proy-body-${idx}', 'arrow-p-${idx}')">
-                    <div style="flex:1">
-                        <div class="proy-name">${p}</div>
-                        <div style="font-size:11px; color:var(--t3)">${items.length} equipos registrados</div>
-                    </div>
-                    <div class="proy-meta">
-                        <span class="proy-monto">${fmtUSD(totalUSD)}</span>
-                        <span class="proy-arrow" id="arrow-p-${idx}">▶</span>
-                    </div>
+                <div class="proy-header" onclick="toggleAcc('p-body-${i}', 'p-arr-${i}')">
+                    <span><b>${p}</b></span>
+                    <span>${fmtUSD(total)} <span id="p-arr-${i}" class="arrow">▶</span></span>
                 </div>
-                <div class="proy-body" id="proy-body-${idx}">
+                <div class="proy-body" id="p-body-${i}">
                     <table class="proy-table">
-                        <thead><tr><th>Hospital</th><th>Equipo</th><th>Cantidad</th><th>Estado</th></tr></thead>
-                        <tbody>
-                            ${items.map(i => `<tr><td>${i.hospital}</td><td>${i.equipo}</td><td>${i.cantidad}</td><td>${i.estado}</td></tr>`).join('')}
-                        </tbody>
+                        <thead><tr><th>Hospital</th><th>Equipo</th><th>Cant</th></tr></thead>
+                        <tbody>${items.map(it => `<tr><td>${it.hospital}</td><td>${it.equipo}</td><td>${it.cantidad}</td></tr>`).join('')}</tbody>
                     </table>
                 </div>
             </div>
@@ -166,49 +261,35 @@ function renderProyectos(){
     }).join('');
 }
 
-function renderDistribucion(){
-    // Agrupar por Licitación
-    let licitaciones = [...new Set(agrupados.map(a => a.licitacion))].sort();
+function renderDistribucion() {
+    const lics = [...new Set(agrupados.map(a => a.licitacion))].sort();
     
-    document.getElementById('dist-container').innerHTML = licitaciones.map((lic, idx) => {
-        let items = agrupados.filter(a => a.licitacion === lic);
-        
-        // ORDENAR: Renglón (Menor a Mayor), luego Equipo, Tipo y Cantidad
-        items.sort((a, b) => a.renglon - b.renglon || a.equipo.localeCompare(b.equipo));
-        
-        let montoTotal = items.reduce((sum, cur) => sum + cur.p_total, 0);
+    document.getElementById('dist-container').innerHTML = lics.map((l, i) => {
+        const items = agrupados.filter(a => a.licitacion === l);
+        // ORDENAR POR RENGLÓN MENOR A MAYOR
+        items.sort((a,b) => a.renglon - b.renglon);
+        const total = items.reduce((s, c) => s + c.p_total, 0);
 
         return `
             <div class="dist-card">
-                <div class="dist-header" onclick="toggleDiv('dist-body-${idx}', 'arrow-d-${idx}')">
-                    <div style="flex:1">
-                        <div class="dist-name">Licitación: <b>${lic}</b></div>
-                        <div style="font-size:12px; color:var(--t3)">Monto Total Licitado: ${fmtUSD(montoTotal)}</div>
+                <div class="dist-header" onclick="toggleAcc('d-body-${i}', 'd-arr-${i}')">
+                    <div>
+                        <div style="font-size:14px">Licitación: <b>${l}</b></div>
+                        <div style="font-size:12px; color:var(--accent)">Total: ${fmtUSD(total)}</div>
                     </div>
-                    <div class="dist-meta">
-                        <span class="dist-hosps">${items.length} renglones</span>
-                        <span class="dist-arrow" id="arrow-d-${idx}">▶</span>
-                    </div>
+                    <span id="d-arr-${i}" class="arrow">▶</span>
                 </div>
-                <div class="dist-body" id="dist-body-${idx}">
+                <div class="dist-body" id="d-body-${i}">
                     <table class="dist-table">
-                        <thead>
-                            <tr>
-                                <th>Renglón</th>
-                                <th>Hospital</th>
-                                <th>Equipo</th>
-                                <th>Tipo Equipo</th>
-                                <th>Cantidad</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>Renglón</th><th>Hospital</th><th>Equipo</th><th>Tipo</th><th>Cant</th></tr></thead>
                         <tbody>
-                            ${items.map(i => `
+                            ${items.map(it => `
                                 <tr>
-                                    <td style="font-weight:bold; color:var(--accent)">#${i.renglon}</td>
-                                    <td>${i.hospital}</td>
-                                    <td>${i.equipo}</td>
-                                    <td>${i.tipo_equipo}</td>
-                                    <td style="text-align:center"><b>${i.cantidad}</b></td>
+                                    <td style="color:var(--accent); font-weight:bold">#${it.renglon}</td>
+                                    <td>${it.hospital}</td>
+                                    <td>${it.equipo}</td>
+                                    <td>${it.tipo}</td>
+                                    <td><b>${it.cantidad}</b></td>
                                 </tr>
                             `).join('')}
                         </tbody>
@@ -219,23 +300,32 @@ function renderDistribucion(){
     }).join('');
 }
 
-// Auxiliares de UI
-function toggleDiv(bodyId, arrowId){
+function toggleAcc(bodyId, arrId) {
     document.getElementById(bodyId).classList.toggle('open');
-    document.getElementById(arrowId).classList.toggle('open');
+    document.getElementById(arrId).classList.toggle('open');
 }
 
-function showTab(t){
-    const tabs = ['dashboard', 'proyectos', 'equipos', 'distribucion'];
-    tabs.forEach(tab => {
-        document.getElementById('tab-' + tab).style.display = (tab === t) ? 'block' : 'none';
-    });
-    // Activar funciones de renderizado según la pestaña
+function showTab(t, btn) {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    
+    document.getElementById('tab-equipos').style.display = t === 'equipos' ? 'block' : 'none';
+    document.getElementById('tab-proyectos').style.display = t === 'proyectos' ? 'block' : 'none';
+    document.getElementById('tab-distribucion').style.display = t === 'distribucion' ? 'block' : 'none';
+    
     if(t === 'proyectos') renderProyectos();
     if(t === 'distribucion') renderDistribucion();
-    if(t === 'equipos') renderTabla();
 }
 
-// Inicio automático
+function limpiarFiltros() {
+    filtros = { estado: [], proy: [], hosp: [] };
+    document.querySelectorAll('.ms-panel input').forEach(i => i.checked = false);
+    document.querySelectorAll('.ms-count').forEach(c => c.style.display = 'none');
+    document.getElementById('search').value = '';
+    renderTabla();
+}
+
 cargarDatos();
 </script>
+</body>
+</html>
